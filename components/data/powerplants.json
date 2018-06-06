@@ -1,0 +1,296 @@
+[
+    {
+      "generators": 6, 
+      "market_cost": 44, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "light"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 36, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "light"
+    }, 
+    {
+      "generators": 4, 
+      "market_cost": 31, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 28, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 24, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "light"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 17, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "light"
+    }, 
+    {
+      "generators": 1, 
+      "market_cost": 11, 
+      "resource_cost": 0, 
+      "resource_type": 5, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 7, 
+      "market_cost": 46, 
+      "resource_cost": 2, 
+      "resource_type": 0, 
+      "type": "light"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 39, 
+      "resource_cost": 2, 
+      "resource_type": 0, 
+      "type": "light"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 34, 
+      "resource_cost": 3, 
+      "resource_type": 0, 
+      "type": "light"
+    }, 
+    {
+      "generators": 4, 
+      "market_cost": 26, 
+      "resource_cost": 1, 
+      "resource_type": 0, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 19, 
+      "resource_cost": 1, 
+      "resource_type": 0, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 16, 
+      "resource_cost": 2, 
+      "resource_type": 0, 
+      "type": "light"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 14, 
+      "resource_cost": 1, 
+      "resource_type": 0, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 1, 
+      "market_cost": 5, 
+      "resource_cost": 2, 
+      "resource_type": 0, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 40, 
+      "resource_cost": 2, 
+      "resource_type": 2, 
+      "type": "light"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 33, 
+      "resource_cost": 3, 
+      "resource_type": 2, 
+      "type": "light"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 29, 
+      "resource_cost": 2, 
+      "resource_type": 2, 
+      "type": "light"
+    }, 
+    {
+      "generators": 4, 
+      "market_cost": 27, 
+      "resource_cost": 1, 
+      "resource_type": 2, 
+      "type": "light"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 25, 
+      "resource_cost": 2, 
+      "resource_type": 2, 
+      "type": "light"
+    }, 
+    {
+      "generators": 4, 
+      "market_cost": 20, 
+      "resource_cost": 3, 
+      "resource_type": 2, 
+      "type": "light"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 15, 
+      "resource_cost": 1, 
+      "resource_type": 2, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 12, 
+      "resource_cost": 2, 
+      "resource_type": 2, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 9, 
+      "resource_cost": 3, 
+      "resource_type": 2, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 1, 
+      "market_cost": 7, 
+      "resource_cost": 1, 
+      "resource_type": 2, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 1, 
+      "market_cost": 4, 
+      "resource_cost": 2, 
+      "resource_type": 2, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 1, 
+      "market_cost": 3, 
+      "resource_cost": 2, 
+      "resource_type": 2, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 42, 
+      "resource_cost": 2, 
+      "resource_type": 1, 
+      "type": "light"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 38, 
+      "resource_cost": 3, 
+      "resource_type": 1, 
+      "type": "light"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 30, 
+      "resource_cost": 2, 
+      "resource_type": 1, 
+      "type": "light"
+    }, 
+    {
+      "generators": 4, 
+      "market_cost": 23, 
+      "resource_cost": 2, 
+      "resource_type": 1, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 18, 
+      "resource_cost": 2, 
+      "resource_type": 1, 
+      "type": "light"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 10, 
+      "resource_cost": 2, 
+      "resource_type": 1, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 1, 
+      "market_cost": 6, 
+      "resource_cost": 1, 
+      "resource_type": 1, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 7, 
+      "market_cost": 50, 
+      "resource_cost": 2, 
+      "resource_type": 3, 
+      "type": "light"
+    }, 
+    {
+      "generators": 6, 
+      "market_cost": 37, 
+      "resource_cost": 2, 
+      "resource_type": 3, 
+      "type": "light"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 32, 
+      "resource_cost": 2, 
+      "resource_type": 3, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 21, 
+      "resource_cost": 1, 
+      "resource_type": 3, 
+      "type": "light"
+    }, 
+    {
+      "generators": 2, 
+      "market_cost": 13, 
+      "resource_cost": 1, 
+      "resource_type": 3, 
+      "type": "dark"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 35, 
+      "resource_cost": 2, 
+      "resource_type": 4, 
+      "type": "light"
+    }, 
+    {
+      "generators": 5, 
+      "market_cost": 22, 
+      "resource_cost": 3, 
+      "resource_type": 4, 
+      "type": "light"
+    }, 
+    {
+      "generators": 3, 
+      "market_cost": 8, 
+      "resource_cost": 2, 
+      "resource_type": 4, 
+      "type": "dark"
+    }
+  ]
