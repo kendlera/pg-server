@@ -9,11 +9,13 @@ class WebServer(Flask):
     def __init__(self, import_name):
         Flask.__init__(self, import_name)
         self.config.from_object(settings.Settings)
+        self.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
         self._initialize()
 
     # additional initialization
     def _initialize(self):
-        self.register_blueprint(infoController.InfoController(self, self.service))
+        self.register_blueprint(infoController.InfoController(self.service))
+        self.register_blueprint(playerController.PlayerController(self, self.service))
 
     # override run
     def run(self):
