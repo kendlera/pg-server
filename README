@@ -1,1 +1,6 @@
 Game server for playing power grid
+
+To test:
+python -m unittest discover -v
+
+To run:
