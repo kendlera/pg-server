@@ -1,0 +1,8 @@
+from enum import Enum
+
+class Phase(Enum):
+	DETERMINE_PLAYER_ORDER = 1
+	AUCTION = 2
+	BUY_RESOURCES = 3
+	BUILD_GENERATORS = 4
+	BUREAUCRACY = 5

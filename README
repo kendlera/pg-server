@@ -4,3 +4,36 @@ To test:
 python -m unittest discover -v
 
 To run:
+python -m server
+
+
+Requests/Responses
+/join POST 			-- used to join the game
+Expected:
+  {'player_name' : <player name>}
+
+Returned:
+  { 
+    'status' : 'FAIL' || 'SUCCEED',
+    'msg' : <message indicating issues if applicable>
+  }
+  Note: the player name returned might not match the POSTed name. 
+  Exclamation points may have been added to the original name to avoid duplicates
+
+  /build POST 		-- build a generator in a city
+  Expected:
+    {
+      'player_name' : <player name>,
+      'path' : [list of cities starting with a city you own to where you want to build]
+    }
+    Note: The first city must be a city already owned by the player
+          The last city must be 'buildable' (has an open slot & player not already there)
+          All cities in the path must be real cities
+          Each city must be adjacent to the previous one
+
+Returned:
+  {
+    'status' : 'FAIL' || 'SUCCEED',
+    'msg' : <message indicating errors if applicable>,
+    'cost' : <cost deducted from player for building> 
+  }

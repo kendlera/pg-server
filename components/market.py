@@ -17,6 +17,7 @@ class Market:
 		self.phase = 1
 		self.flag_3 = False 	# a flag so we know to switch to phase 3 in bureaucracy
 		self._load_powerplants(settings['num_players'])
+		self.starting_bidder = None
 
 	def _load_powerplants(self, num_players):
 		with open(CARDS_FILE, 'r') as f:
