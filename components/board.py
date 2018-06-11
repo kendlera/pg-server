@@ -1,16 +1,18 @@
 import networkx as nx 
+import logging
+logger = logging.getLogger('board')
+fh = logging.FileHandler('output.log')
+logger.addHandler(fh)
 
-EDGELIST = "/Users/akendler/Documents/pg-server/components/data/map_costs.edgelist"
+EDGELIST = "/Users/akendler/Documents/pg-server/components/data/map.edgelist"
 class Board:
 
-	def __init__(self, phase=1):
+	def __init__(self, settings, phase=1):
 		'''
 		edgelist: path to file where map is stored
 		phase: current phase of the game; should always be 1
 		'''
-		if edgelist is None:
-			edgelist = EDGELIST
-		self.board = nx.read_weighted_edgelist(edgelist)
+		self.board = nx.read_weighted_edgelist(EDGELIST)
 		self._initialize_costs()
 		self.phase = phase
 
@@ -19,15 +21,45 @@ class Board:
 			self.board.node[city]["cost"] = 10
 			self.board.node[city]["slots"] = []
 
+	def cities_owned_by_player(self, player_id):
+		'''
+		returns a list of cities owned by the player
+		'''
+		cities = [city for city in self.board.nodes() if player_id in self.board.node[city]["slots"]]
+		return cities
 
 	def num_cities(self, player_id):
-		count = 0
-		for city in self.board.nodes():
-			if player_id in self.board.node[city]['slots']:
-				count += 1
-		return count
+		'''
+		returns the number of cities owned by a player
+		'''
+		cities = self.cities_owned_by_player(player_id)
+		return len(cities)
+
+	def update_cost(self, city):
+		purchased = self.board.node[city]
+		if purchased["cost"] == 10:
+			purchased["cost"] = 15 
+		elif purchased["cost"] == 15:
+			purchased["cost"] = 20
+		elif purchased["cost"] == 20:
+			purchased["cost"] = -1 
+
+	def player_purchase(self, player_id, path):
+		'''
+		allows the player to purchase a slot in the city designated
+		'''
+		city_name = path[-1]
+		purchased = self.board.node[city_name]
+		path_cost = self.cost_of_path(path)
+		city_cost = self.cost_of_city(city_name)
+		purchased["slots"].append(player_id)
+		self.update_cost(city_name)
+		return path_cost + city_cost
 
 	def player_in_city(self, player_id, city):
+		'''
+		Returns True if player_id has a generator in city
+		'''
 		if city not in self.board.nodes():
 			return False, "{} not a valid city name".format(city)
 		slots = self.board.node[city]["slots"]
@@ -48,6 +80,12 @@ class Board:
 		if player_id in slots:
 			return False, "{} has already built in {}".format(player_id, city) 
 		return True, "{} can build in {}".format(player_id, city)
+
+	def cost_of_city(self, city):
+		if city not in self.board.nodes():
+			logger.info("{} not valid city name".format(city))
+			return -1 
+		return self.board.node[city]["cost"]
 
 	def cost_of_path(self, path):
 		'''

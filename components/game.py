@@ -30,6 +30,11 @@ class Game:
 			if player.player_id == player_id:
 				return player.name
 
+	def player_can_afford(self, player_id, amount):
+		for player in self.players:
+			if player.player_id == player_id:
+				return (player.money >= amount)
+
 	def add_player(self, name, player_id):
 		existing_names = [player.name for player in self.players]
 		while name in existing_names:
@@ -87,6 +92,18 @@ class Game:
 					self.player_order.append(player.player_id)
 					not_yet_picked.remove(player.player_id)
 		self.phase = Phase.AUCTION
+
+	def build_generator(self, player_id, path):
+		'''
+		build a generator in the designated city
+		'''
+		cost_to_build = self.board.player_purchase(player_id, path)
+		for player in self.players:
+			if player.player_id == player_id:
+				player.money -= cost_to_build
+		num_owned_cities = self.board.num_cities(player_id)
+		if num_owned_cities >= self.market.currently_available[0]["market_cost"]:
+			self.market.trash_low_powerplants(num_owned_cities)
 
 	def phase_five(self):
 		'''

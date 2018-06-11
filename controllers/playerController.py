@@ -23,9 +23,9 @@ class PlayerController(Controller):
         app.secret_key = key
         self.player_count = 0
         self.game_started = False
-        game_scheduler = sched.scheduler(time.time, time.sleep)
+        self.game_scheduler = sched.scheduler(time.time, time.sleep)
         # schedule the game to start after 60 seconds
-        game_scheduler.enter(60, 1, self.start_game)
+        self.game_scheduler.enter(60, 1, self.start_game)
 
     def start_game(self):
     	if not self.game_started:

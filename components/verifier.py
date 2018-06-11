@@ -17,6 +17,16 @@ class Verifier:
 		return True, ""
 
 	def is_valid_build(self, player_id, path):
-		can_decide, msg = self.is_turn(player_id, Phase.BUILD_GENERATORS)
-		if not can_decide:
+		in_city, msg = self.game.board.player_in_city(player_id, path[0])
+		if not in_city:
+			return False, msg 
+		cost_of_path = self.game.board.cost_of_path(path)
+		if cost_of_path == -1:
+			return False, "Invalid 'path'"
+		can_build, msg = self.game.board.can_build(player_id, path[-1])
+		if not can_build:
 			return False, msg
+		cost_to_build = self.game.board.cost_of_city(path[-1])
+		if self.game.player_can_afford(player_id, cost_to_build + cost_of_path):
+			return True, ""
+		return False, "{} cost to build is more than player has to spend".format(cost_to_build+cost_of_path)
