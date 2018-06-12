@@ -128,6 +128,7 @@ class Market:
 	def buy(self, powerplant_id):
 		for plant in range(CURRENT_MARKET_SIZE):
 			if self.currently_available[plant]["market_cost"] == powerplant_id:
+				bought_plant = self.currently_available[plant]
 				self.currently_available = self.currently_available[0:plant] = self.currently_available[plant+1:]
 				top_card = self.deck[0]
 				self.deck = self.deck[1:]
@@ -138,7 +139,7 @@ class Market:
 					self.flag_3 = True
 				else:
 					self._sort_market(self.currently_available + self.futures_market + [top_card])
-				return
+				return bought_plant
 
 
 
