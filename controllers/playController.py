@@ -42,17 +42,23 @@ class PlayController(Controller):
 		name = self.game.get_player_name(player_id)
 		try:
 			bid = request.form["bid"]
+			bid = int(bid)
 		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' Parameter")
+			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' parameter")
+		except ValueError:
+			return json.dumps({"status": "FAIL", "msg":"'bid' must be a valid integer"})
 		try:
 			powerplant_id = request.form["powerplant_id"]
+			powerplant_id = int(powerplant_id)
 		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' Parameter")
+			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' parameter")
+		except ValueError:
+			return json.dumps({"status": "FAIL", "msg":"'powerplant_id' must be a valid integer"})
 		if self.verifier.player_has_3_plants(player_id):
 			try:
 				trash_id = request.form["trash"]
 			except BadRequestKeyError:
-				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' Parameter")
+				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' parameter")
 		else:
 			trash_id = None
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
@@ -90,9 +96,12 @@ class PlayController(Controller):
 		player_id = session['player_id']
 		name = self.game.get_player_name(player_id)
 		try:
-			path = request.form["path"]
+			paths = request.form["paths"]
+			assert(type(paths) == list)
 		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'paths' Parameter", "cost": 0})
+			return json.dumps({"status": "FAIL", "msg":"Missing 'paths' parameter", "cost": 0})
+		except AssertionError:
+			return json.dumps({"status": "FAIL", "msg":"'paths' must be a list"})
 
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.BUILD_GENERATORS)
 		if not can_decide:
@@ -127,3 +136,57 @@ class PlayController(Controller):
 		self.game.next_turn()
 		self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
 		return json.dumps({"status": status, "msg": msgs, "cost": total_cost})
+
+	@route("/power", methods=['POST'])
+    def power(self):
+		if 'player_id' not in session:
+			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
+		player_id = session['player_id']
+		name = self.game.get_player_name(player_id)
+		can_decide, msg = self.verifier.is_turn(player_id, Phase.BUREAUCRACY)
+		if not can_decide:
+			return json.dumps({"status": "FAIL", "msg": msg, "cost": 0})
+		try:
+			powerplants = request.form["powerplants"]
+			assert(type(powerplants)) == list)
+		except BadRequestKeyError:
+			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplants' Parameter"})
+		except AssertionError:
+			return json.dumps({"status": "FAIL", "msg":"'powerplants' must be a list"})
+		if self.verifier.plants_are_hybrid(player_id, powerplants):
+			try:
+				num_oil = request.form["num_oil"]
+				num_oil = int(num_oil)
+				assert(num_oil >= 0)
+			except BadRequestKeyError:
+				return json.dumps({"status": "FAIL", "msg":"Missing 'num_oil' parameter"})
+			except ValueError:
+				return json.dumps({"status": "FAIL", "msg":"'num_oil' must be an integer"})
+			except AssertionError:
+				return json.dumps({"status": "FAIL", "msg":"'num_oil' must be a non-negative integer"})
+		else:
+			num_oil = 0
+		logger.info("Valid Event! Canceling timeout.")
+		self.timeout_master.cancel(self.current_turn_event)
+		if len(powerplants) == 0:
+			amount = self.game.player_powered(player_id, 0)
+			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+			return json.dumps({"status": "SUCCESS", "msg": "Powered no powerplants", "profit": amount})
+
+		status = []
+		msgs = []
+		total_power = 0
+		for plant in powerplants:
+			can_power, msg, remaining_oil = self.verifier.player_can_power(player_id, plant, num_oil)
+			if not can_power:
+				status.append("FAIL")
+				msg.append(msg)
+			else:
+				status.append("SUCCESS")
+				power = self.game.plant_powered(player_id, plant, num_oil-remaining_oil)
+				msg.append("Powerplant {} generated {} power".format(plant, power))
+				total_power += power 
+		profit = self.game.player_powered(player_id, total_power)
+		logger.info("{} powered {} generators for {} money".format(name, total_power, profit))
+		return json.dumps({"status":status, "msg": msgs, "profit": profit})
+

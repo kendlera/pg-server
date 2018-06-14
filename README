@@ -75,6 +75,7 @@ Returned:
     Note: If you choose not to power, submit an empty list of 'powerplants'; expect a status of 'SUCCESS'
           The 'num_oil' attribute is expected only if the player chooses to power a hybrid powerplant.
           'num_oil' indicates how many of oil should be used to power any hybrid powerplants; the remaining requirement will be met with the player's gas reserves.
+          'num_oil' will ONLY apply to hybrid plants, and not to strictly oil plants
           If the player submits a powerplant market cost not owned by them, the request is invalid
           If a player cannot power the plants indicated, the action will fail and the turn will pass.
           The game will calculate the number of cities powered by the indicated 'powerplants' and award money to the player
@@ -82,5 +83,6 @@ Returned:
   Returns:
     {
       'status' : [list of 'FAIL' || 'SUCCESS' if the powerplant was powered for each powerplant indicated]
-      'msg' : <message indicating errors if applicable
+      'msg' : <message indicating errors if applicable> 
+      'profit' : integer indicating how much money the player gained
     }

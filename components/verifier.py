@@ -3,6 +3,7 @@ determines if the request being made is valid
 rule enforcer
 '''
 from phase import Phase
+from rType import RType
 
 class Verifier:
 	def __init__(self, game):
@@ -12,7 +13,7 @@ class Verifier:
 		if self.game.phase != phase_num:
 			return False, "Wrong phase! Currently in phase {}".format(self.game.phase)
 		# auctions are a special case; it might be someone's turn who is not the lead bidder
-		if self.game.phase == Phase.AUCTION:
+		if self.game.phase == Phase.AUCTION and self.game.auction.auction_in_progress:
 			if self.game.auction.can_bid[self.game.auction.current_bidder] != player_id:
 				name = self.game.get_player_name(self.game.auction.can_bid[self.game.auction.current_bidder])
 				return False, "It is not your turn! {}'s turn to bid".format(name)
@@ -75,3 +76,46 @@ class Verifier:
 		if self.game.player_can_afford(player_id, cost_to_build + cost_of_path):
 			return True, ""
 		return False, "{} cost to build is more than player has to spend".format(cost_to_build+cost_of_path)
+
+	def plants_are_hybrid(self, player_id, powerplants):
+		'''
+		returns true if any of the submitted powerplants are hybrid type plants
+		'''
+		for player in self.game.players:
+			if player.player_id == player_id:
+				for plant in player.powerplants:
+					if plant["resource_type"] == RType.HYBRID and plant["market_cost"] in powerplants:
+						return True 
+				return False
+
+	def player_can_power(self, player_id, powerplant_id, num_oil):
+		'''
+		returns True if player_id has the resoures to power the indicated powerplant
+		'''
+		for player in self.game.players:
+			if player.player_id == player_id:
+				for plant in player.powerplants:
+					if plant["market_cost"] == powerplant_id:
+						if plant["resource_type"] == RType.CLEAN:
+							return True, "", num_oil
+						elif plant["resource_type"] == RType.HYBRID:
+							needed = plant["resource_cost"]
+							if num_oil >= needed:
+								needed_gas = 0 
+								remaining_oil = num_oil - needed
+								needed_oil = needed
+							else:
+								needed_gas = needed - num_oil
+								remaining_oil = 0
+							if player.resoures[RType.OIL] < needed_oil or player.resoures[RType.GAS] < needed_gas:
+								return False, "Need {} oil and {} gas!".format(needed_oil, needed_gas), num_oil 
+							return True, "", remaining_oil
+						else:
+							if player.resoures[plant["resource_type"]] < plant[resource_cost]:
+								return False, "You do not have enough resources to power!", num_oil 
+							else:
+								return True, "", num_oil
+				return False, "You do not own powerplant {}".format(powerplant_id), num_oil
+
+
+

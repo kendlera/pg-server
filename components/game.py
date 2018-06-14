@@ -6,6 +6,7 @@ from board import Board
 from resources import Resources 
 from auction import Auction
 from phase import Phase
+from rType import RType
 import random
 
 class Game:
@@ -71,9 +72,10 @@ class Game:
 				self.phase == Phase.BUILD_GENERATORS 
 			elif self.phase == Phase.BUILD_GENERATORS:
 				self.phase = Phase.BUREAUCRACY 
-				self.player_order.reverse()
 				# wait to trigger phase_five() until all players have powered
-				# self.phase_five()
+				self.player_order.reverse()
+			elif self.phase == Phase.BUREAUCRACY:
+				self.phase_five()
 
 	def resolve_turn(self):
 		'''
@@ -138,7 +140,8 @@ class Game:
 
 	def auction_bid(self, player_id, bid, powerplant, trash_id):
 		'''
-		player_id submitted 'bid' money for the current auction
+		player_id submitted 'bid' money for the current auction or
+		is starting a new auction
 		'''
 		if self.auction.auction_in_progress:
 			self.auction.current_bid = bid 
@@ -186,9 +189,44 @@ class Game:
 		if num_owned_cities >= self.market.currently_available[0]["market_cost"]:
 			self.market.trash_low_powerplants(num_owned_cities)
 
+	def plant_powered(self, player_id, plant_id, num_oil):
+		'''
+		'powers' the given powerplant and returns the amount 
+		of energy that was generated
+		'''
+		for player in self.players:
+			if player.player_id == player_id:
+				for plant in player.powerplants:
+					if plant["market_cost"] == plant_id:
+						if plant["resource_type"] == RType.HYBRID:
+							needed = plant["resource_cost"]
+							needed_gas = needed - num_oil 
+							player.resources[RType.OIL] -= num_oil 
+							player.resources[RType.GAS] -= needed_gas 
+						elif plant["resource_type"] != RType.CLEAN:
+							player.resources[plant["resource_type"]] -= plant["resource_cost"]
+						return plant["generators"]
+
+	def player_powered(self, player_id, num_powered):
+		'''
+		player powers generators for money
+		'''
+		amounts = [10,22,33,44,54,64,73,82,90,98,105,112,118,124,129,134,138,142,145,148,150] 
+		for player in self.players:
+			if player.player_id == player_id:
+				num_cities = self.board.num_cities(player_id)
+				amount = amounts[min(num_cities, num_powered)] 
+				player.money += amount 
+				name = self.get_player_name(player_id)
+				logger.info("{} powered {} generators for {} money".format(name, num_powered, amount))
+				self.next_turn()
+				return amount
+
 	def phase_five(self):
 		'''
 		bureaucracy
 		'''
+		# refresh resource market
+		# prune market
 		self.phase = Phase.DETERMINE_PLAYER_ORDER
 		self.phase_one()
