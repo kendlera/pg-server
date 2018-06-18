@@ -3,6 +3,7 @@ from controller import Controller
 from werkzeug.exceptions import BadRequestKeyError
 from flask import request, session
 from components.phase import Phase
+from components.rType import RType
 import uuid
 import json
 import sched
@@ -87,6 +88,45 @@ class PlayController(Controller):
 			msg = "{} successfully bid {} on Powerplant {}".format(name, bid, powerplant_id)
 			logger.info(msg)
 			return json.dumps({"status": "SUCCESS", "msg" : msg})
+
+	@route("/buy", methods=['POST'])
+    def build(self):
+		if 'player_id' not in session:
+			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
+		player_id = session['player_id']
+		name = self.game.get_player_name(player_id)
+		can_decide, msg = self.verifier.is_turn(player_id, Phase.BUY_RESOURCES)
+		if not can_decide:
+			return json.dumps({"status": "FAIL", "msg": msg}) 
+
+		logger.info("Valid Event! Canceling timeout.")
+		self.timeout_master.cancel(self.current_turn_event)
+
+		resp = {}
+		msgs = []
+		did_fail = False
+		for item in request.form:
+			if item.lower() == "oil":
+				r_type = RType.OIL 
+			elif item.lower() == "gas":
+				r_type = RType.GAS 
+			elif item.lower() == "uranium":
+				r_type = RType.URANIUM 
+			elif item.lower() == "coal":
+				r_type == RType.COAL
+			else: 
+				continue
+			try:
+				amount = request.form[item]
+				amount = int(amount)
+			except ValueError:
+				msgs.append("{} requested an invalid integer {}".format(item, request.form[item]))
+				continue
+			can_buy, msg, num_buy = self.verifier.can_buy_resources(player_id, r_type, amount)
+			if not can_buy:
+				did_fail = True
+			elif num_buy > 0:
+				self.game.buy_resources(player_id, r_type, num_buy)
 
 
     @route("/build", methods=['POST'])

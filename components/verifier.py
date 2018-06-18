@@ -62,6 +62,32 @@ class Verifier:
 						return False, "You do not own powerplant {}! Submit a valid plant to trash.".format(trash_id)
 			return True, ""
 
+	def can_buy_resources(self, player_id, r_type, amount):
+		'''
+		returns True if the player can perform this action 
+				str indicating errors
+				int indicating how many resources the player can buy
+		'''
+		available = self.game.resources.currently_available[r_type]
+		if available == 0:
+			return False, "There are no resources of this type available", 0
+		for player in self.game.players:
+			if player.player_id == player_id:
+				can_hold = player.additional_amount_can_hold(r_type)
+		num_can_buy = 0
+		while num_can_buy < amount and num_can_buy < available and num_can_buy < can_hold:
+			cost = self.game.resources.cost_to_buy(r_type, num_can_buy+1)
+			if self.game.player_can_afford(player_id, cost):
+				num_can_buy += 1
+			else:
+				return False, "Player can only afford {} resources even though requested {}".format(num_can_buy, amount), num_can_buy
+		if num_can_buy == amount:
+			return True, "", amount 
+		elif num_can_buy == available:
+			return False, "Only {} of this resource is available!".format(available), available
+		elif num_can_buy == can_hold:
+			return False, "Player can only hold {} more resources on current powerplants".format(can_hold), can_hold
+
 	def is_valid_build(self, player_id, path):
 		in_city, msg = self.game.board.player_in_city(player_id, path[0])
 		if not in_city:

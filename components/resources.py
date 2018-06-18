@@ -51,3 +51,10 @@ class Reources:
 		else:
 			resources = {RType.OIL: 14, RType.GAS: 18, RType.COAL: 23, RType.URANIUM: 2}
 		return resources
+
+	def cost_to_buy(self, r_type, amount):
+		'''
+		returns the cost to buy 'amount' of r_type
+		returns -1 if not enough resources are available
+		'''
+		return -1

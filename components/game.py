@@ -81,7 +81,16 @@ class Game:
 		'''
 		resolves the current turn due to lack of response from user
 		'''
-		self.next_turn()
+		if self.phase == Phase.AUCTION:
+			if self.auction.auction_in_progress:
+				current = self.auction.can_bid[self.auction.current_bidder]
+			else:
+				current = self.player_order[self.current_player]
+			self.auction_pass(current)
+		elif self.phase == Phase.BUY_RESOURCES or self.phase == Phase.BUILD_GENERATORS:
+			self.next_turn()
+		elif self.phase == Phase.BUREAUCRACY:
+			self.player_powered(self.player_order[self.current_player], 0)
 
 	def phase_one(self):
 		'''
@@ -175,6 +184,16 @@ class Game:
 				self.auction.to_be_trashed = trash_id
 				self.auction.auction_in_progress = True
 
+	def buy_resources(self, player_id, r_type, amount):
+		cost = self.resources.cost_to_buy(r_type, amount)
+		self.resources.currently_available[r_type] -= amount 
+		name = self.get_player_name(player_id)
+		for player in self.players:
+			if player.player_id == player_id:
+				player.money -= cost 
+				player.resources[r_type] += amount
+				logger.info("{} aquired {} of resource type {} for {} money".format(name, amount, r_type, cost))
+				return
 
 	def build_generator(self, player_id, path):
 		'''
