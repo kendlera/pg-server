@@ -1,5 +1,5 @@
-from routing import route
-from controller import Controller
+from controllers.routing import route
+from controllers.controller import Controller
 from werkzeug.exceptions import BadRequestKeyError
 from flask import request, session
 from components.phase import Phase
@@ -18,26 +18,27 @@ manages player action requests
 '''
 
 class PlayController(Controller):
-	def __init__(self, service, ruler):
-        Controller.__init__(self, 'play', __name__)
-        self.game = service
-        self.verifier = ruler
-        # this is how we will deal with turn time-outs
-        # every time a valid request is made, we will reset this timer
-        self.timeout_master = sched.scheduler(time.time, time.sleep)
-        # we give the first player an extra 10 seconds to make the first decision
-        self.current_turn_event = self.timeout_master(TIMEOUT_VALUE + 10, 1, self.player_timeout)
+	def __init__(self, app, service, ruler):
+		Controller.__init__(self, 'play', __name__)
+		self.app = app
+		self.game = service
+		self.verifier = ruler
+		# this is how we will deal with turn time-outs
+		# every time a valid request is made, we will reset this timer
+		self.timeout_master = sched.scheduler(time.time, time.sleep)
+		# we give the first player an extra 10 seconds to make the first decision
+		self.current_turn_event = self.timeout_master(TIMEOUT_VALUE + 10, 1, self.player_timeout)
 
-    def player_timeout(self):
-    	'''
-    	if this function triggers, we pass the current player's turn for taking too long
-    	'''
-    	logger.info("Current player took too long to respond; passing the turn")
-    	self.game.resolve_turn()
+	def player_timeout(self):
+		'''
+		if this function triggers, we pass the current player's turn for taking too long
+		'''
+		logger.info("Current player took too long to respond; passing the turn")
+		self.game.resolve_turn()
 
-    @route("/bid", methods=['POST'])
-    def bid(self):
-    	if 'player_id' not in session:
+	@route("/bid", methods=['POST'])
+	def bid(self):
+		if 'player_id' not in session:
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
 		name = self.game.get_player_name(player_id)
@@ -45,21 +46,21 @@ class PlayController(Controller):
 			bid = request.form["bid"]
 			bid = int(bid)
 		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' parameter")
+			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' parameter"})
 		except ValueError:
 			return json.dumps({"status": "FAIL", "msg":"'bid' must be a valid integer"})
 		try:
 			powerplant_id = request.form["powerplant_id"]
 			powerplant_id = int(powerplant_id)
 		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' parameter")
+			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' parameter"})
 		except ValueError:
 			return json.dumps({"status": "FAIL", "msg":"'powerplant_id' must be a valid integer"})
 		if self.verifier.player_has_3_plants(player_id):
 			try:
 				trash_id = request.form["trash"]
 			except BadRequestKeyError:
-				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' parameter")
+				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' parameter"})
 		else:
 			trash_id = None
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
@@ -74,9 +75,9 @@ class PlayController(Controller):
 			logger.info(msg)
 			self.game.auction_pass(player_id)
 			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
-			return json.dumps({"status" : "SUCCESS", "msg" : msg)
+			return json.dumps({"status" : "SUCCESS", "msg" : msg})
 
-		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid):
+		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid)
 		if not is_valid:
 			self.game.auction_pass(player_id)
 			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
@@ -90,7 +91,7 @@ class PlayController(Controller):
 			return json.dumps({"status": "SUCCESS", "msg" : msg})
 
 	@route("/buy", methods=['POST'])
-    def build(self):
+	def buy(self):
 		if 'player_id' not in session:
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
@@ -129,8 +130,8 @@ class PlayController(Controller):
 				self.game.buy_resources(player_id, r_type, num_buy)
 
 
-    @route("/build", methods=['POST'])
-    def build(self):
+	@route("/build", methods=['POST'])
+	def build(self):
 		if 'player_id' not in session:
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
@@ -178,7 +179,7 @@ class PlayController(Controller):
 		return json.dumps({"status": status, "msg": msgs, "cost": total_cost})
 
 	@route("/power", methods=['POST'])
-    def power(self):
+	def power(self):
 		if 'player_id' not in session:
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
@@ -188,7 +189,7 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg": msg, "cost": 0})
 		try:
 			powerplants = request.form["powerplants"]
-			assert(type(powerplants)) == list)
+			assert(type(powerplants) == list)
 		except BadRequestKeyError:
 			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplants' Parameter"})
 		except AssertionError:

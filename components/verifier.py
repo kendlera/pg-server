@@ -2,8 +2,8 @@
 determines if the request being made is valid
 rule enforcer
 '''
-from phase import Phase
-from rType import RType
+from components.phase import Phase
+from components.rType import RType
 
 class Verifier:
 	def __init__(self, game):

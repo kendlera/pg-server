@@ -1,7 +1,6 @@
 from flask import Flask
-from flask_restful import Resource, Api
 import settings
-from controllers import infoConroller, playerController
+from controllers import infoController, playerController, playController
 from components import game, verifier
 from os import sys, path
 import logging
@@ -15,14 +14,14 @@ class WebServer(Flask):
         Flask.__init__(self, import_name)
         self.config.from_object(settings.Settings)
         self._initialize()
-        self.service = game.Game()
+        self.game_service = game.Game()
         self.ruler = verifier.Verifier(self.service)
 
     # additional initialization
     def _initialize(self):
-        self.register_blueprint(infoController.InfoController(self.service))
-        self.register_blueprint(playController.PlayController(self.service, self.ruler))
-        self.register_blueprint(playerController.PlayerController(self, self.service, self.config['KEY']))
+        self.register_blueprint(infoController.InfoController(self, self.game_service))
+        self.register_blueprint(playController.PlayController(self, self.game_service, self.ruler))
+        self.register_blueprint(playerController.PlayerController(self, self.game_service, self.config['KEY']))
 
     # override run
     def run(self):

@@ -1,10 +1,10 @@
 import json
-from rType import RType
+from components.rType import RType
 
 REFILL_RATE = "/Users/akendler/Documents/pg-server/components/data/replenish_rates.json"
 RESOURCE_SLOTS = "/Users/akendler/Documents/pg-server/components/data/resource_slots.json"
 
-class Reources:
+class Resources:
 
 	def __init__(self, settings):
 		self.refresh_rate = self._load_refresh_rate(settings['board_type'], settings['num_players'])
@@ -51,6 +51,13 @@ class Reources:
 		else:
 			resources = {RType.OIL: 14, RType.GAS: 18, RType.COAL: 23, RType.URANIUM: 2}
 		return resources
+
+	def refresh_market(self, owned_by_players):
+		'''
+		refills the current market as part of phase 5
+		owned_by_players : dictionary of resources curretly owned by game players
+		'''
+		pass
 
 	def cost_to_buy(self, r_type, amount):
 		'''

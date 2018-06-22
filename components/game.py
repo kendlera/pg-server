@@ -1,12 +1,12 @@
 '''
 manages different components of the game
 '''
-from market import Market 
-from board import Board 
-from resources import Resources 
-from auction import Auction
-from phase import Phase
-from rType import RType
+from components.market import Market 
+from components.board import Board 
+from components.resources import Resources 
+from components.auction import Auction
+from components.phase import Phase
+from components.rType import RType
 import random
 
 class Game:
@@ -138,7 +138,7 @@ class Game:
 						player.money -= self.auction.current_bid
 						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.player_name, self.auction.currently_for_bid, self.auction.current_bid))
 						if self.auction.to_be_trashed is not None:
-							logger.info("{} has too many plants! Trashing powerplant {}".format player.player_name, self.auction.to_be_trashed)
+							logger.info("{} has too many plants! Trashing powerplant {}".format(player.player_name, self.auction.to_be_trashed))
 							player.trash_powerplant(self.auction.to_be_trashed)
 						if player.player_id == self.player_order[self.current_player]:
 							self.next_turn()
@@ -169,7 +169,7 @@ class Game:
 						player.money -= self.auction.current_bid
 						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.player_name, powerplant, bid))
 						if trash_id is not None:
-							logger.info("{} has too many plants! Trashing powerplant {}".format player.player_name, self.auction.to_be_trashed)
+							logger.info("{} has too many plants! Trashing powerplant {}".format(player.player_name, self.auction.to_be_trashed))
 							player.trash_powerplant(trash_id)
 						self.next_turn()
 						return
@@ -246,6 +246,16 @@ class Game:
 		bureaucracy
 		'''
 		# refresh resource market
+		owned_resources = {RType.OIL:0, RType.GAS:0, RType.COAL:0, RType.URANIUM:0}
+		for player in self.players:
+			for resource in player.resources:
+				owned_resources[resource] += player.resources[resource]
+		self.resources.refresh_market(owned_resources)
 		# prune market
+		step3 = self.market.bureaucracy()
+		if step3:
+			self.step = 3
+			self.resources.phase = 3
+			self.board.phase = 3
 		self.phase = Phase.DETERMINE_PLAYER_ORDER
 		self.phase_one()

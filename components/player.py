@@ -1,4 +1,4 @@
-from rType import RType
+from components.rType import RType
 
 class Player:
 

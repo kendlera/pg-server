@@ -1,6 +1,6 @@
 import json
 import random
-from rType import RType
+from components.rType import RType
 
 CARDS_FILE = "/Users/akendler/Documents/pg-server/components/data/powerplants.json"
 CURRENT_MARKET_SIZE = 4
@@ -79,7 +79,7 @@ class Market:
 			return
 		while self.currently_available[0]["market_cost"] <= max_cities:
 			self.currently_available = self.currently_available[1:]
-			if len(top_card) == 0:
+			if len(self.deck) == 0:
 				# no more cards!
 				continue
 			top_card = self.deck[0]
@@ -99,6 +99,10 @@ class Market:
 
 
 	def bureaucracy(self):
+		'''
+		performs the bureaucracy phase for the market 
+		returns True if phase 3 was triggered.
+		'''
 		if self.phase < 3 and not flag_3:
 			highest_card = self.futures_market[-1]
 			self.futures_market = self.futures_market[:-1]
@@ -110,12 +114,16 @@ class Market:
 					self.update_phase(2)
 				self.update_phase(3)
 				self._sort_market(self.currently_available + self.futures_market)
+				return True
 			else:
 				self._sort_market(self.currently_available + self.futures_market + [top_card])
+				return False
 		elif flag_3:
 			self.update_phase(3)
+			self.flag_3 = False
 			self.currently_available = self.currently_available[1:]
 			self._sort_market(self.currently_available + self.futures_market)
+			return True
 		else:
 			# phase 3
 			# discard lowest powerplant
@@ -124,6 +132,7 @@ class Market:
 				top_card = self.deck[0]
 				self.deck = self.deck[1:]
 				self._sort_market(self.currently_available + [top_card])
+			return False
 
 	def buy(self, powerplant_id):
 		for plant in range(CURRENT_MARKET_SIZE):

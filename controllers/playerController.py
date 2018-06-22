@@ -1,5 +1,5 @@
-from routing import route
-from controller import Controller
+from controllers.routing import route
+from controllers.controller import Controller
 from werkzeug.exceptions import BadRequestKeyError
 from flask import request, session
 import uuid
@@ -17,24 +17,24 @@ file that allows registration of players to specific games
 
 class PlayerController(Controller):
 	def __init__(self, app, service, key):
-        Controller.__init__(self, 'player', __name__)
-        self.app = app
-        self.service = service
-        app.secret_key = key
-        self.player_count = 0
-        self.game_started = False
-        self.game_scheduler = sched.scheduler(time.time, time.sleep)
-        # schedule the game to start after 60 seconds
-        self.game_scheduler.enter(60, 1, self.start_game)
+		Controller.__init__(self, 'player', __name__)
+		self.app = app
+		self.service = service
+		app.secret_key = key
+		self.player_count = 0
+		self.game_started = False
+		self.game_scheduler = sched.scheduler(time.time, time.sleep)
+		# schedule the game to start after 60 seconds
+		self.game_scheduler.enter(60, 1, self.start_game)
 
-    def start_game(self):
-    	if not self.game_started:
-    		logger.info("Starting the game!")
-    		self.game_started = True 
-    		self.service.start_game()
+	def start_game(self):
+		if not self.game_started:
+			logger.info("Starting the game!")
+			self.game_started = True 
+			self.service.start_game()
 
-    @route("/register", methods=['POST'])
-    def join(self):
+	@route("/register", methods=['POST'])
+	def join(self):
 		if 'player_id' in session:
 			name = self.service.get_player_name(session['player_id'])
 			return json.dumps({"FAIL": "You have already joined this game as {}".format(name)})
