@@ -9,6 +9,13 @@ from components.auction import Auction
 from components.phase import Phase
 from components.rType import RType
 import random
+import logging
+logger = logging.getLogger('game')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 class Game:
 	'''
@@ -28,6 +35,7 @@ class Game:
 		self.phase = Phase.DETERMINE_PLAYER_ORDER
 		self.current_player = 0 	# which player's turn it is w.r.t the player_order index
 		self.player_order = []
+		self.started = False
 
 	def get_player_name(self, player_id):
 		for player in self.players:
@@ -56,6 +64,7 @@ class Game:
 		self.resources = Resources(settings)
 		self.board = Board(settings)
 		self.phase_one()
+		self.started = True
 
 	def next_turn(self):
 		'''

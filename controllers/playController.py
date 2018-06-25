@@ -6,12 +6,12 @@ from components.phase import Phase
 from components.rType import RType
 import uuid
 import json
-import sched
-import time
 import logging
 logger = logging.getLogger('playController')
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
 logger.addHandler(fh)
 TIMEOUT_VALUE = 20 # how many seconds each player gets to make a decision
 '''
@@ -26,16 +26,22 @@ class PlayController(Controller):
 		self.verifier = ruler
 		# this is how we will deal with turn time-outs
 		# every time a valid request is made, we will reset this timer
-		self.timeout_master = sched.scheduler(time.time, time.sleep)
-		# we give the first player an extra 10 seconds to make the first decision
-		self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE + 10, 1, self.player_timeout)
+		self.timeout_master = threading.Timer(3, self.player_timeout)
+		self.timeout_master.start()
 
 	def player_timeout(self):
 		'''
 		if this function triggers, we pass the current player's turn for taking too long
 		'''
-		logger.info("Current player took too long to respond; passing the turn")
-		self.game.resolve_turn()
+		if not self.game.started:
+			# game has not yet started; it's no one's turn!
+			self.timeout_master = threading.Timer(3, self.player_timeout)
+			self.timeout_master.start()
+		else:
+			logger.info("Current player took too long to respond; passing the turn")
+			self.game.resolve_turn()
+			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+			self.timeout_master.start()
 
 	@route("/bid", methods=['POST'])
 	def bid(self):
@@ -70,23 +76,26 @@ class PlayController(Controller):
 		else:
 			# resolve that we have a valid event!
 			logger.info("Valid Event! Canceling timeout.")
-			self.timeout_master.cancel(self.current_turn_event)
+			self.timeout_master.cancel()
 		if bid == -1:
 			msg = "{} deliberately passed on the bid".format(name)
 			logger.info(msg)
 			self.game.auction_pass(player_id)
-			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+			self.timeout_master.start()
 			return json.dumps({"status" : "SUCCESS", "msg" : msg})
 
 		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid)
 		if not is_valid:
 			self.game.auction_pass(player_id)
-			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+			self.timeout_master.start()
 			logger.info("{} submitted an invalid bid; {}".format(name, msg))
 			return json.dumps({"status": "FAIL", "msg" : msg})
 		else:
 			self.game.auction_bid(player_id, bid, powerplant_id, trash_id)
-			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+			self.timeout_master.start()
 			msg = "{} successfully bid {} on Powerplant {}".format(name, bid, powerplant_id)
 			logger.info(msg)
 			return json.dumps({"status": "SUCCESS", "msg" : msg})
@@ -102,7 +111,7 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg": msg}) 
 
 		logger.info("Valid Event! Canceling timeout.")
-		self.timeout_master.cancel(self.current_turn_event)
+		self.timeout_master.cancel()
 
 		resp = {}
 		msgs = []
@@ -151,12 +160,13 @@ class PlayController(Controller):
 		else:
 			# resolve that we have a valid event!
 			logger.info("Valid Event! Canceling timeout.")
-			self.timeout_master.cancel(self.current_turn_event)
+			self.timeout_master.cancel()
 
 		if len(paths) == 0:
 			msg = "{} submitted no cities to purchase; passing the turn".format(name)
 			logger.info(msg)
-			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+			self.timeout_master.start()
 			return json.dumps({"status": "SUCCESS", "msg": msg, "cost": 0})
 
 		status = []
@@ -176,7 +186,8 @@ class PlayController(Controller):
 			msgs.append(msg)
 			total_cost += cost
 		self.game.next_turn()
-		self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+		self.timeout_master.start()
 		return json.dumps({"status": status, "msg": msgs, "cost": total_cost})
 
 	@route("/power", methods=['POST'])
@@ -209,10 +220,11 @@ class PlayController(Controller):
 		else:
 			num_oil = 0
 		logger.info("Valid Event! Canceling timeout.")
-		self.timeout_master.cancel(self.current_turn_event)
+		self.timeout_master.cancel()
 		if len(powerplants) == 0:
 			amount = self.game.player_powered(player_id, 0)
-			self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE, 1, self.player_timeout)
+			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+			self.timeout_master.start()
 			return json.dumps({"status": "SUCCESS", "msg": "Powered no powerplants", "profit": amount})
 
 		status = []
@@ -229,6 +241,8 @@ class PlayController(Controller):
 				msg.append("Powerplant {} generated {} power".format(plant, power))
 				total_power += power 
 		profit = self.game.player_powered(player_id, total_power)
+		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+		self.timeout_master.start()
 		logger.info("{} powered {} generators for {} money".format(name, total_power, profit))
 		return json.dumps({"status":status, "msg": msgs, "profit": profit})
 

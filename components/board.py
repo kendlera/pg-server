@@ -1,7 +1,10 @@
 import networkx as nx 
 import logging
 logger = logging.getLogger('board')
+logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 EDGELIST = "/Users/akendler/Documents/pg-server/components/data/map.edgelist"

@@ -7,9 +7,12 @@ import json
 import sched
 import time
 import logging
+import threading
 logger = logging.getLogger('playerController')
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 '''
@@ -19,15 +22,13 @@ file that allows registration of players to specific games
 class PlayerController(Controller):
 	def __init__(self, app, service, key):
 		Controller.__init__(self, 'player', __name__)
-		print(__name__)
 		self.app = app
 		self.service = service
 		app.secret_key = key
 		self.player_count = 0
 		self.game_started = False
-		self.game_scheduler = sched.scheduler(time.time, time.sleep)
-		# schedule the game to start after 60 seconds
-		self.game_scheduler.enter(60, 1, self.start_game)
+		self.starter = threading.Timer(40, self.start_game)
+		self.starter.start()
 
 	def start_game(self):
 		if not self.game_started:
@@ -66,5 +67,6 @@ class PlayerController(Controller):
 		logger.info("Added player {} to the game".format(unique_name))
 		if self.player_count >= 6:
 			# We have reached the maximum number of players; start the game!
-			game_scheduler.enter(3, 1, self.start_game)
+			self.starter.cancel()
+			self.start_game()
 		return json.dumps({"status": "SUCCESS", "msg": "{} has joined the game!".format(unique_name)})

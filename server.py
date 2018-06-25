@@ -7,6 +7,8 @@ import logging
 logger = logging.getLogger('pg_server')
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 # web server that wraps the expression scanner
