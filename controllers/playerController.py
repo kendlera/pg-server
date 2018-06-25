@@ -8,6 +8,7 @@ import sched
 import time
 import logging
 logger = logging.getLogger('playerController')
+logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
 logger.addHandler(fh)
 
@@ -18,6 +19,7 @@ file that allows registration of players to specific games
 class PlayerController(Controller):
 	def __init__(self, app, service, key):
 		Controller.__init__(self, 'player', __name__)
+		print(__name__)
 		self.app = app
 		self.service = service
 		app.secret_key = key
@@ -33,24 +35,29 @@ class PlayerController(Controller):
 			self.game_started = True 
 			self.service.start_game()
 
+	@route("/test", methods=['GET'])
+	def test(self):
+		print("Hit the endpoint!")
+		return json.dumps({"FAIL": 'none'})
+
 	@route("/register", methods=['POST'])
 	def join(self):
 		if 'player_id' in session:
 			name = self.service.get_player_name(session['player_id'])
-			return json.dumps({"FAIL": "You have already joined this game as {}".format(name)})
+			return json.dumps({"status": "FAIL", "msg": "You have already joined this game as {}".format(name)})
 
 		if self.game_started:
-			return json.dumps({"FAIL": "The game has already started!"})
+			return json.dumps({"status":"FAIL", "msg": "The game has already started!"})
 
 		if self.player_count >= 6:
 			# we probably will never get here because we start the 
 			# game once we get 6 people...
-			return json.dumps({"FAIL": "The game is full!"})
+			return json.dumps({"status":"FAIL", "msg": "The game is full!"})
 
 		try:
 			name = request.form["player_name"]
 		except BadRequestKeyError:
-			return json.dumps({"FAIL":"Missing 'player_name' Parameter"})
+			return json.dumps({"status": "FAIL", "msg":"Missing 'player_name' Parameter"})
 
 		player_id = uuid.uuid4().hex
 		session['player_id'] = player_id 
@@ -60,4 +67,4 @@ class PlayerController(Controller):
 		if self.player_count >= 6:
 			# We have reached the maximum number of players; start the game!
 			game_scheduler.enter(3, 1, self.start_game)
-		return json.dumps({"SUCCESS": "{} has joined the game!".format(unique_name)})
+		return json.dumps({"status": "SUCCESS", "msg": "{} has joined the game!".format(unique_name)})

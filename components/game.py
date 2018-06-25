@@ -1,6 +1,7 @@
 '''
 manages different components of the game
 '''
+from components.player import Player
 from components.market import Market 
 from components.board import Board 
 from components.resources import Resources 

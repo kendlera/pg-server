@@ -10,6 +10,7 @@ import sched
 import time
 import logging
 logger = logging.getLogger('playController')
+logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
 logger.addHandler(fh)
 TIMEOUT_VALUE = 20 # how many seconds each player gets to make a decision
@@ -27,7 +28,7 @@ class PlayController(Controller):
 		# every time a valid request is made, we will reset this timer
 		self.timeout_master = sched.scheduler(time.time, time.sleep)
 		# we give the first player an extra 10 seconds to make the first decision
-		self.current_turn_event = self.timeout_master(TIMEOUT_VALUE + 10, 1, self.player_timeout)
+		self.current_turn_event = self.timeout_master.enter(TIMEOUT_VALUE + 10, 1, self.player_timeout)
 
 	def player_timeout(self):
 		'''

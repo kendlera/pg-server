@@ -5,6 +5,7 @@ from components import game, verifier
 from os import sys, path
 import logging
 logger = logging.getLogger('pg_server')
+logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
 logger.addHandler(fh)
 
@@ -13,9 +14,9 @@ class WebServer(Flask):
     def __init__(self, import_name):
         Flask.__init__(self, import_name)
         self.config.from_object(settings.Settings)
-        self._initialize()
         self.game_service = game.Game()
-        self.ruler = verifier.Verifier(self.service)
+        self.ruler = verifier.Verifier(self.game_service)
+        self._initialize()
 
     # additional initialization
     def _initialize(self):
@@ -25,7 +26,7 @@ class WebServer(Flask):
 
     # override run
     def run(self):
-        logger.info("Server started at {}:{}".format(self.config['HOST'], self.config['DEBUG']))
+        logger.info("Server started at {}:{}".format(self.config['HOST'], self.config['PORT']))
         Flask.run(self, host=self.config['HOST'], port=self.config['PORT'], debug=self.config['DEBUG'], use_reloader=False, threaded=True)
 
 # makes the python file runnable from the python command line eg. python webServer.py
