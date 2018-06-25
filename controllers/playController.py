@@ -6,6 +6,7 @@ from components.phase import Phase
 from components.rType import RType
 import uuid
 import json
+import threading
 import logging
 logger = logging.getLogger('playController')
 logger.setLevel(logging.INFO)
@@ -27,6 +28,7 @@ class PlayController(Controller):
 		# this is how we will deal with turn time-outs
 		# every time a valid request is made, we will reset this timer
 		self.timeout_master = threading.Timer(3, self.player_timeout)
+		self.first_pass = False 	# we need this to pad the first players response. TODO: find something cleaner?
 		self.timeout_master.start()
 
 	def player_timeout(self):
@@ -37,11 +39,14 @@ class PlayController(Controller):
 			# game has not yet started; it's no one's turn!
 			self.timeout_master = threading.Timer(3, self.player_timeout)
 			self.timeout_master.start()
-		else:
+			return
+		elif self.first_pass:
 			logger.info("Current player took too long to respond; passing the turn")
 			self.game.resolve_turn()
-			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
-			self.timeout_master.start()
+		else:
+			self.first_pass = True
+		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+		self.timeout_master.start()
 
 	@route("/bid", methods=['POST'])
 	def bid(self):

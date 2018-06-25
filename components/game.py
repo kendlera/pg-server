@@ -70,7 +70,7 @@ class Game:
 		'''
 		advances the turn/phase
 		'''
-		if self.current_turn < (len(player_order) -1):
+		if self.current_player < (len(self.player_order) -1):
 			# we are still in the same phase 
 			self.current_player += 1 
 		else:
