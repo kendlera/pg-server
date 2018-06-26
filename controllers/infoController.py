@@ -122,3 +122,8 @@ class InfoController(Controller):
 		'''
 		if not self.game.started:
 			return json.dumps({"msg": "The game has not yet started"})
+		resource_bank = {}
+		for r_type in self.game.resources.currently_available:
+			resource_bank[r_type.name] = self.game.resources.currently_available[r_type]
+		return json.dumps(resource_bank)
+
