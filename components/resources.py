@@ -1,5 +1,12 @@
 import json
 from components.rType import RType
+import logging
+logger = logging.getLogger('resources')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 REFILL_RATE = "/Users/akendler/Documents/pg-server/components/data/replenish_rates.json"
 RESOURCE_SLOTS = "/Users/akendler/Documents/pg-server/components/data/resource_slots.json"
@@ -18,6 +25,11 @@ class Resources:
 		loads in a dictionary of the format
 		{
 		  RType : { phase_int : rate_int, phase_int: rate_int, phase_int: rate_int},
+		  ....
+		}
+		returns dictionary of 
+		{
+		  phase_int : { RType : rate_int, RType : rate_int, ...},
 		  ....
 		}
 		'''
@@ -57,11 +69,33 @@ class Resources:
 		refills the current market as part of phase 5
 		owned_by_players : dictionary of resources curretly owned by game players
 		'''
-		pass
+		for r in RType:
+			if r == RType.HYBRID or r == RType.CLEAN:
+				continue
+			amount_refill = self.refresh_rate[self.phase][r]
+			self.currently_available[r] += amount_refill
+			total_available = self.total_tokens[r] - owned_by_players[r]
+			if self.currently_available[r] > total_available:
+				can_refill = amount_refill - (self.currently_available[r] - total_available)
+				logger.info("Only able to refill {} / {} {}.".format(can_refill, amount_refill, r.name)) 
+				self.currently_available[r] = total_available
 
-	def cost_to_buy(self, r_type, amount):
+	def cost_to_buy(self, rtype, num):
 		'''
-		returns the cost to buy 'amount' of r_type
-		returns -1 if not enough resources are available
+		builds list of the cost of all available resources
+		then returns the sum of the cheapest ones
 		'''
-		return -1
+		if rtype == RType.CLEAN:
+			return 0
+		available = self.currently_available[rtype]
+		if available < num:
+			return None		# not enough resources available
+		costs = []
+		i = len(self.slots) - 1
+		while len(costs) < available:
+			for x in range(self.slots[i][rtype]): # how many of the resource is in this bucket
+				costs.append(i+1)
+				if len(costs) == available:
+					break
+			i -= 1
+		return sum(sorted(costs)[:num])

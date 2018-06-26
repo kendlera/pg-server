@@ -119,8 +119,6 @@ class PlayController(Controller):
 		self.timeout_master.cancel()
 
 		resp = {}
-		msgs = []
-		did_fail = False
 		for item in request.form:
 			if item.lower() == "oil":
 				r_type = RType.OIL 
@@ -131,18 +129,28 @@ class PlayController(Controller):
 			elif item.lower() == "coal":
 				r_type == RType.COAL
 			else: 
+				resp[item] = {"status": "FAIL", "msg": "Unable to parse as 'oil' or 'gas' or 'coal' or 'uranium'"}
 				continue
+			resp[item] = {}
 			try:
 				amount = request.form[item]
 				amount = int(amount)
 			except ValueError:
-				msgs.append("{} requested an invalid integer {}".format(item, request.form[item]))
+				resp[item]["status"] = "FAIL"
+				resp[item]["msg"] = "{} requested an invalid integer {}".format(item, request.form[item]))
 				continue
 			can_buy, msg, num_buy = self.verifier.can_buy_resources(player_id, r_type, amount)
 			if not can_buy:
-				did_fail = True
-			elif num_buy > 0:
-				self.game.buy_resources(player_id, r_type, num_buy)
+				resp[item]["status"] = "FAIL"
+				resp[item]["msg"] = msg
+			else:
+				resp[item]["status"] = "SUCCESS"
+				resp[item]["msg"] = "Bought {} resources".format(num_buy)
+			if num_buy > 0:
+				cost = self.game.buy_resources(player_id, r_type, num_buy)
+				resp[item]["amount"] = num_buy 
+				resp[item]["cost"] = cost 
+		return json.dumps(resp)
 
 
 	@route("/build", methods=['POST'])
