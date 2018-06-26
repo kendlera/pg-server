@@ -32,9 +32,14 @@ class PlayerController(Controller):
 
 	def start_game(self):
 		if not self.game_started:
-			logger.info("Starting the game!")
-			self.game_started = True 
-			self.service.start_game()
+			if self.player_count < 3:
+				logger.info("Not enough players to start! Need at least 3, only {} have registered".format(self.player_count))
+				self.starter = threading.Timer(40, self.start_game)
+				self.starter.start()
+			else:
+				logger.info("Starting the game!")
+				self.game_started = True 
+				self.service.start_game()
 
 	@route("/test", methods=['GET'])
 	def test(self):

@@ -2,6 +2,7 @@ from controllers.routing import route
 from controllers.controller import Controller
 from components.rType import RType
 import copy
+import json
 
 '''
 file allowing player to request information about various components of the board
@@ -55,11 +56,19 @@ class InfoController(Controller):
 		info = self.get_player_info(session['player_id'])
 		return json.dumps({"info": info}) 
 
+	@route("/turn_info", methods=['GET'])
+	def turn_info(self):
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
+		return json.dumps({"info": None}) 
+
 	@route("/market", methods=['GET'])
 	def market(self):
 		'''
 		returns the current market, the futures market, and the color of the top card
 		'''
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
 		if len(self.game.market.currently_available) == 0:
 			return json.dumps({"current_market": []}) 
 		current_market = []
@@ -87,8 +96,11 @@ class InfoController(Controller):
 		'''
 		returns the mapping of cities to each other and
 		their link costs
+		list of lists: [ [city_1, city_2, cost_between], [city_1, city_2, cost_between], ... ]
 		'''
-		return json.dumps({"info": None}) 
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
+		return json.dumps(list(self.game.board.board.edges.data('weight')))
 
 	@route("/city_state", methods=['GET'])
 	def city_state(self):
@@ -96,10 +108,17 @@ class InfoController(Controller):
 		returns the status of each city 
 		{ <cityname> : [list of players who have built there], ... }
 		'''
-		return json.dumps({"info": None}) 
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
+		cities = {}
+		for city in self.game.board.board.nodes():
+			cities[city] = self.game.board.board.node[city]["slots"]
+		return json.dumps(cities) 
 
 	@route("/resources", methods=['GET'])
 	def resources(self):
 		'''
 		returns the resources available
 		'''
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
