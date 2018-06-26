@@ -137,7 +137,7 @@ class PlayController(Controller):
 				amount = int(amount)
 			except ValueError:
 				resp[item]["status"] = "FAIL"
-				resp[item]["msg"] = "{} requested an invalid integer {}".format(item, request.form[item]))
+				resp[item]["msg"] = "{} requested an invalid integer {}".format(item, request.form[item])
 				continue
 			can_buy, msg, num_buy = self.verifier.can_buy_resources(player_id, r_type, amount)
 			if not can_buy:
