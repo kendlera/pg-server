@@ -40,11 +40,18 @@ Returned:
           if the returned amount does not match the submitted amount, EITHER
               the player did not have enough money OR
               there were fewer than 'amount' resources available for that type
+          if the player was not able to purchase the full amount, they will be given and charged
+            for the most resources available or that they could afford. The status will still be
+            'FAIL' even though the player did receive some resources in this case 
+          if the player was unable to purchase any resources or the <resource name> could not be parsed,
+            there will be no 'cost' or 'amount fields' and the 'status' will be 'FAIL'
 
   Returned:
     {
-      'status': 'SUCCESS' || 'FAIL',
-      'resource name' : amount,...
+      '<resource_name' : { 'amount': amount_purchased,
+                           'cost' : cost_to_player,
+                           'status' : 'SUCCESS' || 'FAIL',
+                           'msg' : error message }, ...
     }
 --------------------------------------------------------------------------------------------------
 /build POST 		-- build a generator in a city
