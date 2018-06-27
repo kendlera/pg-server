@@ -9,6 +9,7 @@ class Player:
 		self.powerplants = []
 		self.resources = {RType.GAS : 0, RType.URANIUM : 0, RType.OIL : 0, RType.COAL : 0}
 		self.can_bid = True 	# determines if a player can bid on auctions for the round
+		self.game_end_power = 0
 
 	def highest_powerplant(self):
 		'''

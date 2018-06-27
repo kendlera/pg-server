@@ -36,6 +36,7 @@ class Game:
 		self.current_player = 0 	# which player's turn it is w.r.t the player_order index
 		self.player_order = []
 		self.started = False
+		self.game_end = False
 
 	def get_player_name(self, player_id):
 		for player in self.players:
@@ -84,8 +85,33 @@ class Game:
 				self.phase = Phase.BUREAUCRACY 
 				# wait to trigger phase_five() until all players have powered
 				self.player_order.reverse()
+				if self.step == 1:
+					self.check_step_two()
+				self.check_game_end()
 			elif self.phase == Phase.BUREAUCRACY:
 				self.phase_five()
+
+	def check_step_two(self):
+		if len(self.players) == 6:
+			phase_two_trigger = 6
+		else:
+			phase_two_trigger = 7
+		for player in self.players:
+			if self.board.num_cities(player.player_id) >= phase_two_trigger:
+				self.step = 2
+				self.market.update_phase(2)
+				self.board.phase = 2 
+				self.resources.phase = 2
+				return
+
+	def check_game_end(self):
+		num_players = len(self.players) 
+		win_cities = [0, 0, 18, 17, 17, 15, 14] 
+		num_needed = win_cities[num_players]
+		for player in self.players:
+			if self.board.num_cities(player.player_id) >= num_needed:
+				self.game_end = True 
+				return
 
 	def resolve_turn(self):
 		'''
@@ -248,6 +274,8 @@ class Game:
 				player.money += amount 
 				name = self.get_player_name(player_id)
 				logger.info("{} powered {} generators for {} money".format(name, num_powered, amount))
+				if self.game_end:
+					player.game_end_power = num_powered
 				self.next_turn()
 				return amount
 
@@ -255,6 +283,16 @@ class Game:
 		'''
 		bureaucracy
 		'''
+		# check for end game wrap up 
+		if self.game_end: 
+			winner = max(self.players, key=lambda x: x.game_end_power) 
+			ties = [player for player in self.players if player.game_end_power == winner.game_end_power]
+			if len(ties) > 1:
+				logger.info("Tie for powering {} generators! Evaluating money".format(winner.game_end_power))
+				winner = max(ties, key=lambda x: x.money)
+			logger.info("{} won the game!!".format(winner.name))
+			self.log_end_state()
+			return
 		# refresh resource market
 		owned_resources = {RType.OIL:0, RType.GAS:0, RType.COAL:0, RType.URANIUM:0}
 		for player in self.players:
@@ -269,3 +307,13 @@ class Game:
 			self.board.phase = 3
 		self.phase = Phase.DETERMINE_PLAYER_ORDER
 		self.phase_one()
+
+	def log_end_state(self):
+		for player in self.players:
+			logger.info("{} End Stats:".format(player.name))
+			logger.info("\tPowered {} Generators in Final Round".format(player.game_end_power)) 
+			logger.info("\tBuilt in {} Cities".format(self.board.num_cities(player.player_id))) 
+			logger.info("\tEnded the game with {} Money".format(player.money))
+
+
+

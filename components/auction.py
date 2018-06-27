@@ -19,3 +19,6 @@ class Auction:
 
 	def advance_bid(self):
 		self.current_bidder = (self.current_bidder + 1) % len(self.can_bid)
+
+	def get_current_bidder(self):
+		return self.can_bid[self.current_bidder]
