@@ -25,7 +25,10 @@ Returned:
     'msg' : <message indicating issues if applicable>
   }
   Note: the player name returned might not match the POSTed name. 
-  Exclamation points may have been added to the original name to avoid duplicates
+        Exclamation points may have been added to the original name to avoid duplicates
+        IMPORTANT: POSTing to this url will create a session cookie to help avoid players 
+                    submitting actions for other players. You MUST store this cookie and pass it 
+                    in with all action requests, or the server will not recognize you.
 
 --------------------------------------------------------------------------------------------------
 /buy POST       -- purchase resources 
