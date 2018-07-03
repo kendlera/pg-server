@@ -80,7 +80,7 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg": msg})
 		else:
 			# resolve that we have a valid event!
-			logger.info("Valid Event! Canceling timeout.")
+			# logger.info("Valid Event! Canceling timeout.")
 			self.timeout_master.cancel()
 		if bid == -1:
 			msg = "{} deliberately passed on the bid".format(name)
@@ -90,7 +90,7 @@ class PlayController(Controller):
 			self.timeout_master.start()
 			return json.dumps({"status" : "SUCCESS", "msg" : msg})
 
-		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid)
+		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid, trash_id)
 		if not is_valid:
 			self.game.auction_pass(player_id)
 			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
@@ -115,7 +115,7 @@ class PlayController(Controller):
 		if not can_decide:
 			return json.dumps({"status": "FAIL", "msg": msg}) 
 
-		logger.info("Valid Event! Canceling timeout.")
+		# logger.info("Valid Event! Canceling timeout.")
 		self.timeout_master.cancel()
 
 		resp = {}
@@ -172,7 +172,7 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg": msg, "cost": 0})
 		else:
 			# resolve that we have a valid event!
-			logger.info("Valid Event! Canceling timeout.")
+			# logger.info("Valid Event! Canceling timeout.")
 			self.timeout_master.cancel()
 
 		if len(paths) == 0:
@@ -232,7 +232,7 @@ class PlayController(Controller):
 				return json.dumps({"status": "FAIL", "msg":"'num_oil' must be a non-negative integer"})
 		else:
 			num_oil = 0
-		logger.info("Valid Event! Canceling timeout.")
+		# logger.info("Valid Event! Canceling timeout.")
 		self.timeout_master.cancel()
 		if len(powerplants) == 0:
 			amount = self.game.player_powered(player_id, 0)

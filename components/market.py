@@ -22,6 +22,8 @@ class Market:
 	def _load_powerplants(self, num_players):
 		with open(CARDS_FILE, 'r') as f:
 			plants = json.load(f)
+		for card in plants:
+			card["resource_type"] = RType(card["resource_type"])
 		dark = [card for card in plants if card["type"] == "dark"]
 		light = [card for card in plants if card["type"] == "light"]
 

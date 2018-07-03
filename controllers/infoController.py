@@ -70,18 +70,18 @@ class InfoController(Controller):
 	@route("/auction", methods=['GET'])
 	def auction(self):
 		if not self.game.started:
-			return json.dumps({"msg": "The game has not yet started", "aucion_in_progress": False}) 
+			return json.dumps({"msg": "The game has not yet started", "auction_in_progress": False}) 
 		if not self.game.auction.auction_in_progress:
-			return json.dumps({"aucion_in_progress": False})
+			return json.dumps({"auction_in_progress": False})
 		else:
 			auction_plant = self.game.auction.currently_for_bid
 			plant_copy = None
 			for plant in self.game.market.currently_available:
 				if plant["market_cost"] == auction_plant:
 					plant_copy = copy.deepcopy(plant)
-					plant_copy["resource_type"] = plant_copy["resource_type"].name
+					plant_copy["resource_type"] = plant["resource_type"].name
 					break
-			return json.dumps({"aucion_in_progress": True, "current_bid": self.game.auction.current_bid, "powerplant": plant_copy})
+			return json.dumps({"auction_in_progress": True, "current_bid": self.game.auction.current_bid, "powerplant": plant_copy})
 
 
 	@route("/market", methods=['GET'])

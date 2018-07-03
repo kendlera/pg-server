@@ -74,4 +74,4 @@ class PlayerController(Controller):
 			# We have reached the maximum number of players; start the game!
 			self.starter.cancel()
 			self.start_game()
-		return json.dumps({"status": "SUCCESS", "msg": "{} has joined the game!".format(unique_name)})
+		return json.dumps({"status": "SUCCESS", "msg": "{} has joined the game!".format(unique_name), "name": unique_name})

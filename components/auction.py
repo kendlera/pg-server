@@ -18,7 +18,10 @@ class Auction:
 		self.to_be_trashed = 0 		# the market price of the powerplant owned by the winning_bidder to be trashed if won
 
 	def advance_bid(self):
-		self.current_bidder = (self.current_bidder + 1) % len(self.can_bid)
+		if self.current_bidder == len(self.can_bid):
+			self.current_bidder = 0
+		else:
+			self.current_bidder = (self.current_bidder + 1) % len(self.can_bid)
 
 	def get_current_bidder(self):
 		return self.can_bid[self.current_bidder]

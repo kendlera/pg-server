@@ -65,6 +65,7 @@ class Game:
 		self.resources = Resources(settings)
 		self.board = Board(settings)
 		self.phase_one()
+		logger.info("Initial Order: {}".format(self.player_order))
 		self.started = True
 
 	def next_turn(self):
@@ -74,7 +75,15 @@ class Game:
 		if self.current_player < (len(self.player_order) -1):
 			# we are still in the same phase 
 			self.current_player += 1 
+			if self.phase == Phase.AUCTION:
+				for player in self.players:
+					if player.player_id == self.player_order[self.current_player]:
+						if not player.can_bid: 
+							self.next_turn() 
+							return
+			logger.info("Advancing the counter! {} is the current_player".format(self.get_player_name(self.player_order[self.current_player])))
 		else:
+			logger.info("Phase over!")
 			self.current_player = 0 
 			if self.phase == Phase.AUCTION:
 				self.player_order.reverse()
@@ -162,17 +171,20 @@ class Game:
 			self.next_turn()
 		else:
 			self.auction.can_bid.remove(player_id)
+			# logger.info("{} passed. Remaining Players: {}".format(player_id, self.auction.can_bid))
 			if len(self.auction.can_bid) == 1:
 				self.auction.auction_in_progress = False
 				# someone has won the bid!
 				winner = self.auction.can_bid[0]
+				logger.info("{} won the bid!".format(winner))
 				for player in self.players:
+					# logger.info(player.player_id + " : " + player.name)
 					if player.player_id == winner:
 						player.can_bid = False 
 						won_plant = self.market.buy(self.auction.currently_for_bid)
 						player.powerplants.append(won_plant)
 						player.money -= self.auction.current_bid
-						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.player_name, self.auction.currently_for_bid, self.auction.current_bid))
+						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.name, self.auction.currently_for_bid, self.auction.current_bid))
 						if self.auction.to_be_trashed is not None:
 							logger.info("{} has too many plants! Trashing powerplant {}".format(player.player_name, self.auction.to_be_trashed))
 							player.trash_powerplant(self.auction.to_be_trashed)
@@ -203,9 +215,9 @@ class Game:
 						won_plant = self.market.buy(powerplant)
 						player.powerplants.append(won_plant)
 						player.money -= self.auction.current_bid
-						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.player_name, powerplant, bid))
+						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.name, powerplant, bid))
 						if trash_id is not None:
-							logger.info("{} has too many plants! Trashing powerplant {}".format(player.player_name, self.auction.to_be_trashed))
+							logger.info("{} has too many plants! Trashing powerplant {}".format(player.name, self.auction.to_be_trashed))
 							player.trash_powerplant(trash_id)
 						self.next_turn()
 						return
@@ -216,7 +228,7 @@ class Game:
 				logger.info("{} started an auction for powerplant {}".format(name, powerplant))
 				self.auction.currently_for_bid = powerplant 
 				self.auction.winning_bidder = player_id 
-				self.auction.bid = bid 
+				self.auction.current_bid = bid 
 				self.auction.to_be_trashed = trash_id
 				self.auction.auction_in_progress = True
 
