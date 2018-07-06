@@ -127,7 +127,7 @@ class PlayController(Controller):
 			elif item.lower() == "uranium":
 				r_type = RType.URANIUM 
 			elif item.lower() == "coal":
-				r_type == RType.COAL
+				r_type = RType.COAL
 			else: 
 				resp[item] = {"status": "FAIL", "msg": "Unable to parse as 'oil' or 'gas' or 'coal' or 'uranium'"}
 				continue
@@ -139,6 +139,7 @@ class PlayController(Controller):
 				resp[item]["status"] = "FAIL"
 				resp[item]["msg"] = "{} requested an invalid integer {}".format(item, request.form[item])
 				continue
+			logger.info("{} has requested {} {}".format(name, amount, r_type.name))
 			can_buy, msg, num_buy = self.verifier.can_buy_resources(player_id, r_type, amount)
 			if not can_buy:
 				resp[item]["status"] = "FAIL"
@@ -148,8 +149,12 @@ class PlayController(Controller):
 				resp[item]["msg"] = "Bought {} resources".format(num_buy)
 			if num_buy > 0:
 				cost = self.game.buy_resources(player_id, r_type, num_buy)
+				logger.info("{} purchased {} {} for {} money".format(name, num_buy, r_type.name, cost))
 				resp[item]["amount"] = num_buy 
 				resp[item]["cost"] = cost 
+		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+		self.timeout_master.start()
+		self.game.next_turn()
 		return json.dumps(resp)
 
 

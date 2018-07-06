@@ -31,7 +31,7 @@ class Player:
 		if r_type == RType.OIL or r_type == RType.GAS:
 			num_oil_can_hold = 0
 			num_gas_can_hold = 0
-			num_hybrid_slots = 0
+			num_hybrid_can_hold = 0
 			for plant in self.powerplants:
 				if plant["resource_type"] == RType.GAS:
 					num_gas_can_hold += (2 * plant["resource_cost"])

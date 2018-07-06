@@ -1,3 +1,4 @@
+from flask import session
 from controllers.routing import route
 from controllers.controller import Controller
 from components.rType import RType
@@ -22,12 +23,13 @@ class InfoController(Controller):
 			if player.player_id == player_id:
 				info["name"] = player.name
 				info["money"] = player.money
+				info["powerplants"] = []
 				plants = player.powerplants
 				for plant in plants:
 					plant_copy = copy.deepcopy(plant)
 					# convert our enum type into a string
 					plant_copy["resource_type"] = plant_copy["resource_type"].name
-					info["powerplants"] = plant_copy
+					info["powerplants"].append(plant_copy)
 				info["cities"] = self.game.board.cities_owned_by_player(player.player_id)
 				resource_copy = {}
 				# again change our resource enum into readable string

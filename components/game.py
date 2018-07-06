@@ -83,13 +83,13 @@ class Game:
 							return
 			logger.info("Advancing the counter! {} is the current_player".format(self.get_player_name(self.player_order[self.current_player])))
 		else:
-			logger.info("Phase over!")
+			logger.info("Phase over! {} is the current_player".format(self.get_player_name(self.player_order[self.current_player])))
 			self.current_player = 0 
 			if self.phase == Phase.AUCTION:
 				self.player_order.reverse()
 				self.phase = Phase.BUY_RESOURCES 
 			elif self.phase == Phase.BUY_RESOURCES:
-				self.phase == Phase.BUILD_GENERATORS 
+				self.phase = Phase.BUILD_GENERATORS 
 			elif self.phase == Phase.BUILD_GENERATORS:
 				self.phase = Phase.BUREAUCRACY 
 				# wait to trigger phase_five() until all players have powered
@@ -176,9 +176,7 @@ class Game:
 				self.auction.auction_in_progress = False
 				# someone has won the bid!
 				winner = self.auction.can_bid[0]
-				logger.info("{} won the bid!".format(winner))
 				for player in self.players:
-					# logger.info(player.player_id + " : " + player.name)
 					if player.player_id == winner:
 						player.can_bid = False 
 						won_plant = self.market.buy(self.auction.currently_for_bid)
@@ -241,7 +239,7 @@ class Game:
 				player.money -= cost 
 				player.resources[r_type] += amount
 				logger.info("{} aquired {} of resource type {} for {} money".format(name, amount, r_type, cost))
-				return
+				return cost
 
 	def build_generator(self, player_id, path):
 		'''
