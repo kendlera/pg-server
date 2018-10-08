@@ -63,7 +63,11 @@ class InfoController(Controller):
 		if not self.game.started:
 			return json.dumps({"msg": "The game has not yet started"})
 		if not self.game.auction.auction_in_progress:
-			current_player = self.game.get_player_name(self.game.player_order[self.game.current_player])
+			if self.game.current_player == -1:
+				# currently re-calculating for BEAUROCRACY
+				current_player = "Calculating..."
+			else:
+				current_player = self.game.get_player_name(self.game.player_order[self.game.current_player])
 		else:
 			current_player = self.game.get_player_name(self.game.auction.get_current_bidder())
 		current_stage = self.game.phase.name
@@ -124,9 +128,9 @@ class InfoController(Controller):
 		'''
 		if not self.game.started:
 			return json.dumps({"msg": "The game has not yet started"})
-		return json.dumps(list(self.game.board.board.edges.data('weight')))
+		return json.dumps(list(self.game.board.board.edges(data='weight')))
 
-	@route("/city_state", methods=['GET'])
+	@route("/city_status", methods=['GET'])
 	def city_state(self):
 		'''
 		returns the status of each city 
@@ -136,7 +140,8 @@ class InfoController(Controller):
 			return json.dumps({"msg": "The game has not yet started"})
 		cities = {}
 		for city in self.game.board.board.nodes():
-			cities[city] = self.game.board.board.node[city]["slots"]
+			players = self.game.board.board.node[city]["slots"]
+			cities[city] = [self.game.get_player_name(x) for x in players]
 		return json.dumps(cities) 
 
 	@route("/resources", methods=['GET'])

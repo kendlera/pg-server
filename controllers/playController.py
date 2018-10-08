@@ -54,6 +54,8 @@ class PlayController(Controller):
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
 		name = self.game.get_player_name(player_id)
+		# print(request.form)
+		# print(request)
 		try:
 			bid = request.form["bid"]
 			bid = int(bid)
@@ -164,8 +166,9 @@ class PlayController(Controller):
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
 		name = self.game.get_player_name(player_id)
+		data = request.get_json()
 		try:
-			paths = request.form["paths"]
+			paths = data["paths"]
 			assert(type(paths) == list)
 		except BadRequestKeyError:
 			return json.dumps({"status": "FAIL", "msg":"Missing 'paths' parameter", "cost": 0})
@@ -183,6 +186,7 @@ class PlayController(Controller):
 		if len(paths) == 0:
 			msg = "{} submitted no cities to purchase; passing the turn".format(name)
 			logger.info(msg)
+			self.game.next_turn()
 			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
 			self.timeout_master.start()
 			return json.dumps({"status": "SUCCESS", "msg": msg, "cost": 0})
@@ -215,10 +219,11 @@ class PlayController(Controller):
 		player_id = session['player_id']
 		name = self.game.get_player_name(player_id)
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.BUREAUCRACY)
+		data = request.get_json()
 		if not can_decide:
 			return json.dumps({"status": "FAIL", "msg": msg, "cost": 0})
 		try:
-			powerplants = request.form["powerplants"]
+			powerplants = data["powerplants"]
 			assert(type(powerplants) == list)
 		except BadRequestKeyError:
 			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplants' Parameter"})
@@ -226,7 +231,7 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg":"'powerplants' must be a list"})
 		if self.verifier.plants_are_hybrid(player_id, powerplants):
 			try:
-				num_oil = request.form["num_oil"]
+				num_oil = data["num_oil"]
 				num_oil = int(num_oil)
 				assert(num_oil >= 0)
 			except BadRequestKeyError:
@@ -256,11 +261,10 @@ class PlayController(Controller):
 			else:
 				status.append("SUCCESS")
 				power = self.game.plant_powered(player_id, plant, num_oil-remaining_oil)
-				msg.append("Powerplant {} generated {} power".format(plant, power))
+				msgs.append("Powerplant {} generated {} power".format(plant, power))
 				total_power += power 
 		profit = self.game.player_powered(player_id, total_power)
 		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
 		self.timeout_master.start()
-		logger.info("{} powered {} generators for {} money".format(name, total_power, profit))
 		return json.dumps({"status":status, "msg": msgs, "profit": profit})
 

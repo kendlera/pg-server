@@ -89,6 +89,8 @@ class Verifier:
 			return False, "Player can only hold {} more resources on current powerplants".format(can_hold), can_hold
 
 	def is_valid_build(self, player_id, path):
+		if self.game.board.num_cities(player_id) == 0:
+			return self.game.board.can_build(player_id, path[0])
 		in_city, msg = self.game.board.player_in_city(player_id, path[0])
 		if not in_city:
 			return False, msg 
@@ -116,7 +118,7 @@ class Verifier:
 
 	def player_can_power(self, player_id, powerplant_id, num_oil):
 		'''
-		returns True if player_id has the resoures to power the indicated powerplant
+		returns True if player_id has the resources to power the indicated powerplant
 		'''
 		for player in self.game.players:
 			if player.player_id == player_id:
@@ -133,11 +135,11 @@ class Verifier:
 							else:
 								needed_gas = needed - num_oil
 								remaining_oil = 0
-							if player.resoures[RType.OIL] < needed_oil or player.resoures[RType.GAS] < needed_gas:
+							if player.resources[RType.OIL] < needed_oil or player.resources[RType.GAS] < needed_gas:
 								return False, "Need {} oil and {} gas!".format(needed_oil, needed_gas), num_oil 
 							return True, "", remaining_oil
 						else:
-							if player.resoures[plant["resource_type"]] < plant[resource_cost]:
+							if player.resources[plant["resource_type"]] < plant["resource_cost"]:
 								return False, "You do not have enough resources to power!", num_oil 
 							else:
 								return True, "", num_oil

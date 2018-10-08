@@ -37,12 +37,10 @@ class Resources:
 			data = json.load(f)
 
 		rates = data[board_type][str(num_players)]
-		processed = {}
+		processed = {1 : {}, 2 : {}, 3 : {}}
 		for r_type in rates:
-			new_phase_dict = {}
 			for phase in rates[r_type]:
-				new_phase_dict[int(phase)] = rates[r_type][phase]
-			processed[RType(int(r_type))] = new_phase_dict
+				processed[int(phase)].update({RType(int(r_type)): rates[r_type][phase]})
 		return processed
 
 	def _load_slots(self):

@@ -1,6 +1,13 @@
 import json
 import random
 from components.rType import RType
+import logging
+logger = logging.getLogger('market')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler('output.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 CARDS_FILE = "/Users/akendler/Documents/pg-server/components/data/powerplants.json"
 CURRENT_MARKET_SIZE = 4
@@ -55,6 +62,8 @@ class Market:
 		market = sorted(powerplants, key=lambda x: x["market_cost"])
 		self.currently_available = market[:CURRENT_MARKET_SIZE]
 		self.futures_market = market[CURRENT_MARKET_SIZE:]
+		logger.info("Current Market: {}".format([plant["market_cost"] for plant in self.currently_available]))
+		logger.info("Future Market: {}".format([plant["market_cost"] for plant in self.futures_market]))
 
 	def update_phase(self, num):
 		self.phase = num
@@ -105,7 +114,7 @@ class Market:
 		performs the bureaucracy phase for the market 
 		returns True if phase 3 was triggered.
 		'''
-		if self.phase < 3 and not flag_3:
+		if self.phase < 3 and not self.flag_3:
 			highest_card = self.futures_market[-1]
 			self.futures_market = self.futures_market[:-1]
 			self.deck.append(highest_card)
@@ -120,7 +129,7 @@ class Market:
 			else:
 				self._sort_market(self.currently_available + self.futures_market + [top_card])
 				return False
-		elif flag_3:
+		elif self.flag_3:
 			self.update_phase(3)
 			self.flag_3 = False
 			self.currently_available = self.currently_available[1:]
@@ -140,7 +149,7 @@ class Market:
 		for plant in range(CURRENT_MARKET_SIZE):
 			if self.currently_available[plant]["market_cost"] == powerplant_id:
 				bought_plant = self.currently_available[plant]
-				self.currently_available = self.currently_available[0:plant] = self.currently_available[plant+1:]
+				self.currently_available = self.currently_available[0:plant] + self.currently_available[plant+1:]
 				top_card = self.deck[0]
 				self.deck = self.deck[1:]
 				if top_card["type"] == "stage3":

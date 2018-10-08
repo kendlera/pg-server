@@ -63,7 +63,7 @@ Returned:
       'player_name' : <player name>,
       'paths' : [list of lists of cities starting with a city you own to where you want to build]
     }
-    Note: The first city must be a city already owned by the player
+    Note: The first city must be a city already owned by the player (unless you own no cities)
           The last city must be 'buildable' (has an open slot & player not already there)
           All cities in the path must be real cities
           Each city must be adjacent to its neighbors

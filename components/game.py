@@ -141,6 +141,8 @@ class Game:
 		'''
 		determine player order
 		'''
+		print("phase one")
+		self.current_player = -1
 		if self.player_order == []:
 			# it's the first round! we randomly choose
 			players = [player.player_id for player in self.players]
@@ -152,11 +154,13 @@ class Game:
 			while len(self.player_order) != len(self.players):
 				top = max(not_yet_picked, key=lambda x: self.board.num_cities(x))
 				num_cities = self.board.num_cities(top)
-				ties = [player for player in self.players if self.board.num_cities(player.player_id) == top]
+				ties = [player for player in self.players if self.board.num_cities(player.player_id) == num_cities]
 				rank = sorted(ties, key=lambda x: x.highest_powerplant(), reverse=True)
 				for player in rank:
 					self.player_order.append(player.player_id)
 					not_yet_picked.remove(player.player_id)
+		logger.info("Player Order: {}".format([self.get_player_name(p_id) for p_id in self.player_order]))
+		self.current_player = 0
 		self.phase = Phase.AUCTION
 
 	def auction_pass(self, player_id):
@@ -253,6 +257,7 @@ class Game:
 		num_owned_cities = self.board.num_cities(player_id)
 		if num_owned_cities >= self.market.currently_available[0]["market_cost"]:
 			self.market.trash_low_powerplants(num_owned_cities)
+		return cost_to_build
 
 	def plant_powered(self, player_id, plant_id, num_oil):
 		'''
@@ -280,10 +285,11 @@ class Game:
 		for player in self.players:
 			if player.player_id == player_id:
 				num_cities = self.board.num_cities(player_id)
-				amount = amounts[min(num_cities, num_powered)] 
+				num_power = min(num_cities, num_powered)
+				amount = amounts[num_power] 
 				player.money += amount 
 				name = self.get_player_name(player_id)
-				logger.info("{} powered {} generators for {} money".format(name, num_powered, amount))
+				logger.info("{} powered {} cities for {} money".format(name, num_power, amount))
 				if self.game_end:
 					player.game_end_power = num_powered
 				self.next_turn()
@@ -293,6 +299,7 @@ class Game:
 		'''
 		bureaucracy
 		'''
+		print("phase_five")
 		# check for end game wrap up 
 		if self.game_end: 
 			winner = max(self.players, key=lambda x: x.game_end_power) 
@@ -304,10 +311,13 @@ class Game:
 			self.log_end_state()
 			return
 		# refresh resource market
+		print("refreshing market")
 		owned_resources = {RType.OIL:0, RType.GAS:0, RType.COAL:0, RType.URANIUM:0}
 		for player in self.players:
 			for resource in player.resources:
-				owned_resources[resource] += player.resources[resource]
+				owned_resources[resource] += player.resources[resource] 
+			# we reset all player flags so they can bid again
+			player.can_bid = True
 		self.resources.refresh_market(owned_resources)
 		# prune market
 		step3 = self.market.bureaucracy()
