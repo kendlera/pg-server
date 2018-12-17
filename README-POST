@@ -1,0 +1,122 @@
+Requests/Responses to POST actions to the server
+
+IMPORTANT - all game actions require the cookie returned by the /join endpoint
+if using the requests package, correctly using it would look something like this:
+```
+To register and retrieve your cookie from the response:
+response = requests.post(game_url + "/register", data={"player_name": "JohnDoe"})
+player_token = response.cookies
+
+LATER when POSTing any subsequent actions:
+response = requests.post(game_url + "/someEndpoint", data=<information related to action>, cookies=player_token)
+```
+If you do not send the cookie, you will probably get the response when submitting data `{"msg": "You have not joined this game!", "status": "FAIL"}`
+
+--------------------------------------------------------------------------------------------------
+/register POST 			-- used to join the game
+Expected:
+  {'player_name' : <player name>}
+
+Returned:
+  { 
+    'status' : 'FAIL' || 'SUCCESS',
+    'msg' : <message indicating issues if applicable>
+  }
+  Note: the player name returned might not match the POSTed name. 
+        Exclamation points may have been added to the original name to avoid duplicates
+        IMPORTANT: POSTing to this url will create a session cookie to help avoid players 
+                    submitting actions for other players. You MUST store this cookie and pass it 
+                    in with all action requests, or the server will not recognize you.
+
+--------------------------------------------------------------------------------------------------
+/buy POST       -- purchase resources 
+  Expected:
+    {
+      'player_name' : <player name,
+      '<resource name>' : amount,
+      '<resource name>' amount...
+    }
+    Note: <resource name> must be either "gas", "oil", "uranium", or "coal"
+          Returns how many resources you were able to buy of each.
+          if the returned amount does not match the submitted amount, EITHER
+              the player did not have enough money OR
+              there were fewer than 'amount' resources available for that type
+          if the player was not able to purchase the full amount, they will be given and charged
+            for the most resources available or that they could afford. The status will still be
+            'FAIL' even though the player did receive some resources in this case 
+          if the player was unable to purchase any resources or the <resource name> could not be parsed,
+            there will be no 'cost' or 'amount fields' and the 'status' will be 'FAIL'
+
+  Returned:
+    {
+      '<resource_name' : { 'amount': amount_purchased,
+                           'cost' : cost_to_player,
+                           'status' : 'SUCCESS' || 'FAIL',
+                           'msg' : error message }, ...
+    }
+--------------------------------------------------------------------------------------------------
+/build POST 		-- build a generator in a city
+  Expected:
+    {
+      'player_name' : <player name>,
+      'paths' : [list of lists of cities starting with a city you own to where you want to build]
+    }
+    Note: The first city must be a city already owned by the player (unless you own no cities)
+          The last city must be 'buildable' (has an open slot & player not already there)
+          All cities in the path must be real cities
+          Each city must be adjacent to its neighbors
+          The order of the list you submit matters! Each purchase will be treated as sequential.
+          If you just want to pass your turn, you can submit an empty list.
+
+  Returned:
+    {
+      'status' : [list of 'FAIL' || 'SUCCESS' corresponding to submitted paths list],
+      'msg' : <message indicating errors if applicable>,
+      'cost' : <cost deducted from player for building> 
+    }
+--------------------------------------------------------------------------------------------------
+/bid POST     -- place a bid in powerplant auction
+  Expected:
+    {
+      'player_name' : <player name>,
+      'powerplant_id' : <market cost of powerplant to bid on>,
+      'bid' : <amount of money to bid>,
+      'trash'(OPTIONAL) : <market cost of powerplant you own that you will trash if you win the bid>
+    }
+    Note: Unless it is the player's turn to start a new bid, the powerplant_id MUST match the current auction
+          If the powerplant_id does not match the current powerplant for bid, it will be considered a 'pass'
+          If a player has 3 powerplants at the time of submitting a bid and does not include a valid 'trash' option, it will be considered a 'pass'.
+          If the bid is less than the market_price or less than the current bid, the action is considered a 'pass'
+            - Deliberately sending a bid of -1 will indicate the intention to 'pass'. Only in this instance will the return status be 'SUCCESS' even though the player failed to place a bid.
+          The response status refers only to the success of placing a bid! 
+          The player should check the game state periodically to determine if their bid was the winning bid.
+          If the player wins the bid and as a result cannot store all their resources, those resources will be lost
+
+  Returned:
+    {
+      'status' : 'FAIL' || 'SUCCESS',
+      'msg' : <message indicating errors if applicable>
+    }
+
+--------------------------------------------------------------------------------------------------
+/power POST     -- power your generators; make money!
+  Expected:
+    {
+      'player_name' : <player name>,
+      'powerplants' : [list of powerplant market costs that you want to provide power],
+      'num_oil' (OPTIONAL): <int indicating how many oil resources you want to use>
+    }
+    Note: If you choose not to power, submit an empty list of 'powerplants'; expect a status of 'SUCCESS'
+          The 'num_oil' attribute is expected only if the player chooses to power a hybrid powerplant.
+          'num_oil' indicates how many of oil should be used to power any hybrid powerplants; the remaining requirement will be met with the player's gas reserves.
+          'num_oil' will ONLY apply to hybrid plants, and not to strictly oil plants
+          If the player submits a powerplant market cost not owned by them, the request is invalid
+          If a player cannot power the plants indicated, the action will fail and the turn will pass.
+          The game will calculate the number of cities powered by the indicated 'powerplants' and award money to the player
+
+  Returns:
+    {
+      'status' : [list of 'FAIL' || 'SUCCESS' if the powerplant was powered for each powerplant indicated]
+      'msg' : <message indicating errors if applicable> 
+      'profit' : integer indicating how much money the player gained
+    }

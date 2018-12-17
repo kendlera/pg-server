@@ -8,8 +8,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-REFILL_RATE = "/Users/akendler/Documents/pg-server/components/data/replenish_rates.json"
-RESOURCE_SLOTS = "/Users/akendler/Documents/pg-server/components/data/resource_slots.json"
+REFILL_RATE = "data/replenish_rates.json"
+RESOURCE_SLOTS = "data/resource_slots.json"
 
 class Resources:
 

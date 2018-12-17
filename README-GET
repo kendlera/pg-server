@@ -1,0 +1,120 @@
+Requests/Responses for all the GET endpoints, typically used for retrieving the current game state
+
+Note: only "/my_info" requires the player cookie to be passed in (please see README-POST for explanation of this)
+	
+--------------------------------------------------------------------------------------------------
+/player_info GET 			-- retrieves information about all players in the game
+
+Returns list of json objects about player's holdings
+{
+	"info": [{
+		"name": player's name,
+		"money": player's current money,
+		"cities": [list of cities currently containing player's generator],
+		"resources": {"OIL": number of oil, "GAS": number of gas, "URANIUM": number of uranium, "COAL": number of coal}
+		"powerplants": [{
+					      "generators": number of generators it can power, 
+					      "market_cost": market cost of powerplant, 
+					      "resource_cost": number of resources needed to power, 
+					      "resource_type": "GAS" || "OIL" || "COAL" || "URANIUM" || "HYBRID" || "CLEAN",
+					      "type": "light" || "dark"
+					    }, ...]
+		}, ....
+]}
+
+--------------------------------------------------------------------------------------------------
+/my_info  GET 				-- retrieves information about your player
+NOTE: this endpoint requires your player cookie to get passed to it
+{
+	"info": {
+		"name": player's name,
+		"money": player's current money,
+		"cities": [list of cities currently containing player's generator],
+		"resources": {"OIL": number of oil, "GAS": number of gas, "URANIUM": number of uranium, "COAL": number of coal}
+		"powerplants": [{
+					      "generators": number of generators it can power, 
+					      "market_cost": market cost of powerplant, 
+					      "resource_cost": number of resources needed to power, 
+					      "resource_type": "GAS" || "OIL" || "COAL" || "URANIUM" || "HYBRID" || "CLEAN",
+					      "type": "light" || "dark"
+					    }, ...]
+		}
+}
+
+--------------------------------------------------------------------------------------------------
+/turn_info  GET 			-- returns whose turn it currently is and the phase
+
+If the game has yet to begin (not all players have registered):
+	{"msg": "The game has not yet started"})
+
+If the server is currently adjusting game state as part of Beaurocracy:
+	{"current_player": "Calculating...", "phase": "DETERMINE_PLAYER_ORDER"}
+
+Otherwise:
+	{"current_player": <player's name>, "phase": "AUCTION" || "BUY_RESOURCES" || "BUILD_GENERATORS" || "BUREAUCRACY"}
+
+--------------------------------------------------------------------------------------------------
+/auction  GET 				-- returns whether or not there is an auction in progress & relevant information if so
+
+If the game has not yet started:
+	{"msg": "The game has not yet started", "auction_in_progress": False}
+
+If there is currently no auction:
+	{"auction_in_progress": False}
+
+Otherwise:
+	{"auction_in_progress": True, "current_bid": <current winning bid>, 
+									"powerplant": {
+										"generators": number of generators it can power, 
+										"market_cost": market cost of powerplant, 
+										"resource_cost": number of resources needed to power, 
+										"resource_type": "GAS" || "OIL" || "COAL" || "URANIUM" || "HYBRID" || "CLEAN",
+										"type": "light" || "dark" }}
+
+--------------------------------------------------------------------------------------------------
+/market  GET 				-- the current state of the market of powerplants
+
+If the game has not yet started:
+	{"msg": "The game has not yet started"}
+
+NOTE: "top_color" refers to the color of the back of the powerplant currently at the top of the deck
+If there is a futures market:
+	{"current_market": [list of powerplant objects], "futures_market": [list of powerplant objects], "top_color": "light" || "dark"}
+
+If there is no futures market:
+{"current_market": [list of powerplant objects], "top_color": "light" || "dark"}
+
+a powerplant object will look like this:
+{ "generators": number of generators it can power, 
+  "market_cost": market cost of powerplant, 
+  "resource_cost": number of resources needed to power, 
+  "resource_type": "GAS" || "OIL" || "COAL" || "URANIUM" || "HYBRID" || "CLEAN",
+  "type": "light" || "dark" }
+
+ --------------------------------------------------------------------------------------------------
+/board  GET 				-- returns a mapping of cities and their link costs
+
+If the game has not started:
+	{"msg": "The game has not yet started"}
+
+Otherwise:
+	[ [city_1, city_2, cost_between], [city_1, city_2, cost_between], ... ]
+
+--------------------------------------------------------------------------------------------------
+/city_status  GET 			-- current listing of all cities and who has currently built there 
+
+If the game has not yet started:
+	{"msg": "The game has not yet started"}
+
+Otherwise:
+	{ <cityname> : [list of player's names who have built there], ... }
+	
+--------------------------------------------------------------------------------------------------
+/resources  GET 			-- the number of currently available resources for each type
+
+If the game has not yet started:
+	{"msg": "The game has not yet started"}
+
+Otherwise
+	{"OIL": number of oil, "GAS": number of gas, "URANIUM": number of uranium, "COAL": number of coal}
+

@@ -7,7 +7,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-EDGELIST = "/Users/akendler/Documents/pg-server/components/data/map.edgelist"
+EDGELIST = "data/map.edgelist"
 class Board:
 
 	def __init__(self, settings, phase=1):
