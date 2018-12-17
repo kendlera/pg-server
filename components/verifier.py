@@ -103,7 +103,9 @@ class Verifier:
 		cost_to_build = self.game.board.cost_of_city(path[-1])
 		if self.game.player_can_afford(player_id, cost_to_build + cost_of_path):
 			return True, ""
-		return False, "{} cost to build is more than player has to spend".format(cost_to_build+cost_of_path)
+		for player in self.game.players:
+			if player.player_id == player_id:
+				return False, "{} cost to build is more than player has; currently {} money".format(cost_to_build+cost_of_path, player.money)
 
 	def plants_are_hybrid(self, player_id, powerplants):
 		'''

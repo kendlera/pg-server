@@ -9,9 +9,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-currentDir = os.path.dirname(__file__)
-REFILL_RATE = os.path.join(currentDir, "data/replenish_rates.json")
-RESOURCE_SLOTS = os.path.join(currentDir, "data/resource_slots.json")
+REFILL_RATE = "data/replenish_rates.json"
+RESOURCE_SLOTS = "data/resource_slots.json"
 
 class Resources:
 
