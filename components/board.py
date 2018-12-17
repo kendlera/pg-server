@@ -1,5 +1,7 @@
 import networkx as nx 
 import logging
+import os
+from components import DATA_DIR
 logger = logging.getLogger('board')
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
@@ -7,7 +9,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-EDGELIST = "data/map.edgelist"
+EDGELIST = os.path.join(DATA_DIR, "map.edgelist")
 class Board:
 
 	def __init__(self, settings, phase=1):

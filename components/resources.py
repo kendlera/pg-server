@@ -1,5 +1,7 @@
 import json
+import os
 from components.rType import RType
+from components import DATA_DIR
 import logging
 logger = logging.getLogger('resources')
 logger.setLevel(logging.INFO)
@@ -8,8 +10,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-REFILL_RATE = "data/replenish_rates.json"
-RESOURCE_SLOTS = "data/resource_slots.json"
+REFILL_RATE = os.path.join(DATA_DIR, "replenish_rates.json")
+RESOURCE_SLOTS = os.path.join(DATA_DIR, "resource_slots.json")
 
 class Resources:
 
