@@ -1,6 +1,7 @@
 import json
 from components.rType import RType
 import logging
+import os
 logger = logging.getLogger('resources')
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler('output.log')
@@ -8,8 +9,9 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-REFILL_RATE = "/Users/akendler/Documents/pg-server/components/data/replenish_rates.json"
-RESOURCE_SLOTS = "/Users/akendler/Documents/pg-server/components/data/resource_slots.json"
+currentDir = os.path.dirname(__file__)
+REFILL_RATE = os.path.join(currentDir, "data/replenish_rates.json")
+RESOURCE_SLOTS = os.path.join(currentDir, "data/resource_slots.json")
 
 class Resources:
 

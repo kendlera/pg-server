@@ -1,6 +1,7 @@
 import json
 import random
 from components.rType import RType
+import os
 import logging
 logger = logging.getLogger('market')
 logger.setLevel(logging.INFO)
@@ -9,7 +10,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-CARDS_FILE = "/Users/akendler/Documents/pg-server/components/data/powerplants.json"
+currentDir = os.path.dirname(__file__)
+CARDS_FILE = os.path.join(currentDir, "data/powerplants.json")
 CURRENT_MARKET_SIZE = 4
 FUTURES_MARKET_SIZE = 5 # should be 4 for North America board
 NUM_DISCARD_LIGHT = {2:5, 3:6, 4:3, 5:0, 6:0}
