@@ -8,7 +8,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-EDGELIST = "data/map.edgelist"
+CURRENT = os.path.dirname(__file__)
+EDGELIST = os.path.join(CURRENT, "data/map.edgelist")
 class Board:
 
 	def __init__(self, settings, phase=1):
