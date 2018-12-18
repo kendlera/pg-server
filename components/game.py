@@ -188,7 +188,7 @@ class Game:
 						player.money -= self.auction.current_bid
 						logger.info("{} won the auction! Bought powerplant {} for {} money".format(player.name, self.auction.currently_for_bid, self.auction.current_bid))
 						if self.auction.to_be_trashed is not None:
-							logger.info("{} has too many plants! Trashing powerplant {}".format(player.player_name, self.auction.to_be_trashed))
+							logger.info("{} has too many plants! Trashing powerplant {}".format(player.name, self.auction.to_be_trashed))
 							player.trash_powerplant(self.auction.to_be_trashed)
 						if player.player_id == self.player_order[self.current_player]:
 							self.next_turn()

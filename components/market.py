@@ -79,7 +79,7 @@ class Market:
 			FUTURES_MARKET_SIZE = 0
 			CURRENT_MARKET_SIZE = 6
 			self.currently_available = self.currently_available[1:]
-			random.shuffle(deck)
+			random.shuffle(self.deck)
 			self._sort_market(self.currently_available + self.futures_market)
 
 	def trash_low_powerplants(self, max_cities):

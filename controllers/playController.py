@@ -48,6 +48,15 @@ class PlayController(Controller):
 		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
 		self.timeout_master.start()
 
+	def pass_the_bid(self, name, player_id):
+		self.timeout_master.cancel()
+		msg = "{} deliberately passed on the bid".format(name)
+		logger.info(msg)
+		self.game.auction_pass(player_id)
+		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+		self.timeout_master.start()
+		return json.dumps({"status" : "SUCCESS", "msg" : msg})
+
 	@route("/bid", methods=['POST'])
 	def bid(self):
 		if 'player_id' not in session:
@@ -63,6 +72,10 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' parameter"})
 		except ValueError:
 			return json.dumps({"status": "FAIL", "msg":"'bid' must be a valid integer"})
+		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
+		if can_decide and not self.game.auction.auction_in_progress and bid == -1:
+			# we don't need the other parameters
+			return self.pass_the_bid(name, player_id)
 		try:
 			powerplant_id = request.form["powerplant_id"]
 			powerplant_id = int(powerplant_id)
@@ -70,14 +83,18 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' parameter"})
 		except ValueError:
 			return json.dumps({"status": "FAIL", "msg":"'powerplant_id' must be a valid integer"})
-		if self.verifier.player_has_3_plants(player_id):
+
+		if self.verifier.player_has_3_plants(player_id) and bid > -1:  # we don't require a 'trash' if the player decides to pass
 			try:
 				trash_id = request.form["trash"]
+				trash_id = int(trash_id)
 			except BadRequestKeyError:
 				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' parameter"})
+			except ValueError:
+				return json.dumps({"status": "FAIL", "msg":"'trash' must be a valid integer"})
 		else:
 			trash_id = None
-		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
+		# can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
 		if not can_decide:
 			return json.dumps({"status": "FAIL", "msg": msg})
 		else:
@@ -85,12 +102,7 @@ class PlayController(Controller):
 			# logger.info("Valid Event! Canceling timeout.")
 			self.timeout_master.cancel()
 		if bid == -1:
-			msg = "{} deliberately passed on the bid".format(name)
-			logger.info(msg)
-			self.game.auction_pass(player_id)
-			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
-			self.timeout_master.start()
-			return json.dumps({"status" : "SUCCESS", "msg" : msg})
+			return self.pass_the_bid(name, player_id)
 
 		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid, trash_id)
 		if not is_valid:
