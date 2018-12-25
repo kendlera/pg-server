@@ -33,6 +33,12 @@ class Verifier:
 		if self.game.auction.auction_in_progress:
 			if powerplant_id != self.game.auction.currently_for_bid:
 				return False, "You must bid on current powerplant {}".format(self.game.auction.currently_for_bid)
+			for player in self.game.players:
+				if player.player_id == player_id:
+					if bid > player.money:
+						return False, "You cannot make bid of {}; you have {} money".format(bid, player.money)
+					else:
+						break
 			if bid <= self.game.auction.current_bid:
 				return False, "Your bid must be greater than current bid of {}".format(self.game.auction.current_bid)
 			if trash_id is not None:
@@ -51,6 +57,12 @@ class Verifier:
 					break
 			if not in_market:
 				return False, "Powerplant {} is not in current market".format(powerplant_id)
+			for player in self.game.players:
+				if player.player_id == player_id:
+					if bid > player.money:
+						return False, "You cannot make bid of {}; you have {} money".format(bid, player.money)
+					else:
+						break
 			if bid < powerplant_id:
 				return False, "Bid is {} and must be at least {}".format(bid, powerplant_id)
 			if trash_id is not None:
