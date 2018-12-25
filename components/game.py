@@ -172,6 +172,14 @@ class Game:
 			for player in self.players:
 				if player.player_id == player_id:
 					player.can_bid = False
+					# special case! the player is not allowed to pass on the first turn
+					if len(player.powerplants) == 0:
+						# we only get here if the player timed out
+						# so we force them to buy the most expensive available powerplant as punishment
+						pplant = sorted(self.market.currently_available, lambda x: x["market_cost"])[-1]
+						player.money -= pplant["market_cost"]
+						player.powerplants.append(pplant)
+						self.market.buy(pplant["market_cost"])
 			self.next_turn()
 		else:
 			self.auction.can_bid.remove(player_id)

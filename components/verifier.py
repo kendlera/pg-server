@@ -29,25 +29,36 @@ class Verifier:
 			if player.player_id == player_id:
 				return (len(player.powerplants) == 3)
 
+	def player_can_pass(self, player_id):
+		for player in self.game.players:
+			if player.player_id == player_id:
+				return (len(player.powerplants) > 0)
+
 	def is_valid_bid(self, player_id, powerplant_id, bid, trash_id):
+		for player in self.game.players:
+			if player.player_id == player_id:
+				if bid > player.money:
+					return False, "You cannot make bid of {}; you have {} money".format(bid, player.money)
+				else:
+					break
+		if trash_id is not None:
+			owned, found = [False, False]
+			for player in self.game.players:
+				if player.player_id == player_id:
+					found = True 
+					for powerplant in player.powerplants:
+						if powerplant["market_cost"] == trash_id:
+							owned = True
+							break
+				if found:
+					break
+			if not owned:
+				return False, "You do not own powerplant {}! Submit a valid plant to trash.".format(trash_id)
 		if self.game.auction.auction_in_progress:
 			if powerplant_id != self.game.auction.currently_for_bid:
 				return False, "You must bid on current powerplant {}".format(self.game.auction.currently_for_bid)
-			for player in self.game.players:
-				if player.player_id == player_id:
-					if bid > player.money:
-						return False, "You cannot make bid of {}; you have {} money".format(bid, player.money)
-					else:
-						break
 			if bid <= self.game.auction.current_bid:
 				return False, "Your bid must be greater than current bid of {}".format(self.game.auction.current_bid)
-			if trash_id is not None:
-				for player in self.game.players:
-					if player.player_id == player_id:
-						for powerplant in player.powerplants:
-							if powerplant["market_cost"] == trash_id:
-								return True, ""
-						return False, "You do not own powerplant {}! Submit a valid plant to trash.".format(trash_id)
 			return True, ""
 		else:
 			in_market = False
@@ -57,21 +68,8 @@ class Verifier:
 					break
 			if not in_market:
 				return False, "Powerplant {} is not in current market".format(powerplant_id)
-			for player in self.game.players:
-				if player.player_id == player_id:
-					if bid > player.money:
-						return False, "You cannot make bid of {}; you have {} money".format(bid, player.money)
-					else:
-						break
 			if bid < powerplant_id:
 				return False, "Bid is {} and must be at least {}".format(bid, powerplant_id)
-			if trash_id is not None:
-				for player in self.game.players:
-					if player.player_id == player_id:
-						for powerplant in player.powerplants:
-							if powerplant["market_cost"] == trash_id:
-								return True, ""
-						return False, "You do not own powerplant {}! Submit a valid plant to trash.".format(trash_id)
 			return True, ""
 
 	def can_buy_resources(self, player_id, r_type, amount):

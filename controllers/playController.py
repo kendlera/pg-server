@@ -74,6 +74,9 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg":"'bid' must be a valid integer"})
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
 		if can_decide and not self.game.auction.auction_in_progress and bid == -1:
+			# special case! You cannot pass the turn in the first round 
+			if not self.verifier.player_can_pass(player_id):
+				return json.dumps({"status": "FAIL", "msg":"You cannot pass on bidding in the first round!"})
 			# we don't need the other parameters
 			return self.pass_the_bid(name, player_id)
 		try:
