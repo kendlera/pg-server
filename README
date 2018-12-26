@@ -1,5 +1,12 @@
 Game server for playing power grid
 
+Dependencies:
+python3 (2.7 not supported)
+pip
+
+To setup:
+pip install -r requirements.txt
+
 To test:
 python -m unittest discover -v
 
@@ -18,5 +25,6 @@ General Design
 Dependencies: 
 flask
 networkx
+requests
 
 
