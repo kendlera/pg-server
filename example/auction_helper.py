@@ -1,7 +1,8 @@
 import requests
 import random
 
-server_url = 'http://127.0.0.1:5050'
+from constants import SERVER_HOST, SERVER_PORT
+server_url = SERVER_HOST + ":" + SERVER_PORT
 
 
 def main(player, market_state, auction_state, all_players_state, player_token):

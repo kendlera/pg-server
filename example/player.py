@@ -2,10 +2,12 @@ import requests
 import time
 import threading
 import sys
+import os
 
-import auction_helper
+import auction_helper as AH
+from constants import SERVER_HOST, SERVER_PORT
 
-server_url = "http://127.0.0.1:5050"
+server_url = SERVER_HOST + SERVER_PORT
 
 
 class Player:
@@ -28,8 +30,8 @@ class Player:
                                cookies=self.player_token).json()
         all_player_info = requests.get(server_url + "/player_info").json()
         auction_state = requests.get(server_url + "/auction").json()
-        auction_helper.main(my_info, market_state, auction_state,
-                            all_player_info, self.player_token)
+        AH.main(my_info, market_state, auction_state,
+                all_player_info, self.player_token)
         new_state = requests.get(server_url + '/auction').json()
         print(new_state)
 
@@ -59,9 +61,22 @@ class Player:
             print('Unrecognized phase ' + phase)
 
 
+def try_connect(MAX_RETRIES=5):
+    retries = 0
+    while retries < MAX_RETRIES:
+        try:
+            requests.get(server_url + '/player_info')
+            break
+        except requests.exceptions.ConnectionError as e:
+            time.sleep(5)
+            print('Retrying connection...')
+            retries += 1
+
+
 # Testing
 if __name__ == "__main__":
     player_name = sys.argv[1]
+    try_connect()
     player = Player(player_name)
     while True:
         player.do_turn()
