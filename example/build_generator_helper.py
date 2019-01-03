@@ -11,18 +11,18 @@ nodes = ['Lyon', 'Sofia', 'Istanbul', 'Paris', 'Wien', 'Riga', 'Vlaanderen', 'Br
 
 def main(player, my_info, player_token):
     my_info = requests.get(server_url + "/my_info", cookies=player_token).json()
-    #player_info = requests.get(server_url + "/player_info",cookies=player_token).json()
+    player_info = requests.get(server_url + "/player_info",cookies=player_token).json()
     print(json.dumps(my_info, indent=4))
     response = choose_generator(my_info['info']['name'], player_token)
-    print(response)
+    #print(response.text)
+    print(json.dumps(player_info, indent=4))
 
 def choose_generator(player_name, player_token):
 
     payload = dict(player_name=player_name)
-    payload['paths']= [random.choice(nodes)]
+    payload['paths']= [[random.choice(nodes)]]
     print('payload', payload)
-    response = requests.post(server_url + "/build", data=payload, cookies=player_token)
-    print(response.status_code)
+    response = requests.post(server_url + "/build", json=payload, cookies=player_token).json()
     return response
 
 
