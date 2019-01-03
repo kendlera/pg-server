@@ -70,7 +70,7 @@ class PlayerController(Controller):
 		self.player_count += 1
 		unique_name = self.service.add_player(name, player_id)
 		logger.info("Added player {} to the game".format(unique_name))
-		if self.player_count >= 6:
+		if self.player_count >= 2:
 			# We have reached the maximum number of players; start the game!
 			self.starter.cancel()
 			self.start_game()

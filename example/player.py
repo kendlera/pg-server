@@ -3,8 +3,11 @@ import time
 import threading
 import sys
 import os
+import json
 
 import auction_helper as AH
+import buy_resource_helper as RH
+import build_generator_helper as GH
 from constants import SERVER_HOST, SERVER_PORT
 
 server_url = SERVER_HOST + SERVER_PORT
@@ -13,18 +16,19 @@ server_url = SERVER_HOST + SERVER_PORT
 class Player:
     def __init__(self, name=""):
         self.name = name
-        response = requests.post(
-            server_url + "/register", data={"player_name": name})
+        response = requests.post(server_url + "/register", data={"player_name": name})
         self.player_token = response.cookies
 
     def is_my_turn(self):
         response = requests.get(server_url + "/turn_info").json()
         player_turn = response.get('current_player')
+        print(player_turn)
         if player_turn == self.name:
             return True
         return False
 
     def do_auction(self):
+        print("im in the auction")
         market_state = requests.get(server_url + "/market").json()
         my_info = requests.get(server_url + "/my_info",
                                cookies=self.player_token).json()
@@ -33,22 +37,35 @@ class Player:
         AH.main(my_info, market_state, auction_state,
                 all_player_info, self.player_token)
         new_state = requests.get(server_url + '/auction').json()
-        print(new_state)
+        #print(json.dumps(new_state, indent=4))
+
 
     def do_buy_resources(self):
-        pass
+        print("im in the buy resource")
+        resource_state = requests.get(server_url + "/resources").json()
+        my_info = requests.get(server_url + "/my_info",
+                               cookies=self.player_token).json()
+        all_player_info = requests.get(server_url + "/player_info").json()
+        RH.main(my_info,  all_player_info, self.player_token)
+        new_state = requests.get(server_url + '/resources').json()
+
+
 
     def do_build_generators(self):
-        pass
+        print('build generators')
+        my_info = requests.get(server_url + "/my_info", cookies=self.player_token).json()
+        all_player_info = requests.get(server_url + "/player_info").json()
+        GH.main(player, my_info, self.player_token)
 
     def do_bureaucracy_phase(self):
-        pass
+        print('do bureaucracy')
 
     def do_turn(self):
         # Wait until it's my turn
         while not self.is_my_turn():
             time.sleep(1)
         phase = requests.get(server_url + "/turn_info").json().get('phase')
+        print(phase)
         if phase == 'AUCTION':
             self.do_auction()
         elif phase == 'BUY_RESOURCES':
@@ -65,7 +82,7 @@ def try_connect(MAX_RETRIES=5):
     retries = 0
     while retries < MAX_RETRIES:
         try:
-            requests.get(server_url + '/player_info')
+            requests.get(server_url + '/turn_info')
             break
         except requests.exceptions.ConnectionError as e:
             time.sleep(5)
@@ -75,6 +92,7 @@ def try_connect(MAX_RETRIES=5):
 
 # Testing
 if __name__ == "__main__":
+    #customize here
     player_name = sys.argv[1]
     try_connect()
     player = Player(player_name)
