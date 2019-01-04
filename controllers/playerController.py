@@ -27,14 +27,14 @@ class PlayerController(Controller):
 		app.secret_key = key
 		self.player_count = 0
 		self.game_started = False
-		self.starter = threading.Timer(40, self.start_game)
+		self.starter = threading.Timer(10, self.start_game)
 		self.starter.start()
 
 	def start_game(self):
 		if not self.game_started:
 			if self.player_count < 3:
 				logger.info("Not enough players to start! Need at least 3, only {} have registered".format(self.player_count))
-				self.starter = threading.Timer(40, self.start_game)
+				self.starter = threading.Timer(10, self.start_game)
 				self.starter.start()
 			else:
 				logger.info("Starting the game!")

@@ -74,7 +74,6 @@ class Player:
             max_bid = market_state['current_market'][-1]['market_cost'] + 3
             # workaround since server doesn't support passing on the first bid, so this will just pass
             bid = max_bid if (current_bid > max_bid) else current_bid + 1
-            print(bid)
             payload = {'player_name': self.name, 'powerplant_id': powerplant_id, 'bid': bid}
             response = requests.post(SERVER_URL + '/bid', json=payload, cookies=self.player_token).json()
             if response.get('status') != 'SUCCESS':
@@ -83,7 +82,21 @@ class Player:
 
 
     def _buy(self):
-        pass
+        """Do the buy phase"""
+        # Get info we need
+        resources_state = requests.get(SERVER_URL + '/resources').json()
+        my_info = requests.get(SERVER_URL + '/my_info', cookies=self.player_token).json()['info']
+
+        # Only buy enough to power 1 generator
+        my_powerplants = my_info['powerplants']
+        cheapest_plant = sorted(my_powerplants, key=lambda x: x['resource_cost'])[0]
+        # If resources type is hybrid, Just buy coal
+        resource_to_buy = 'COAL' if cheapest_plant['resource_type'] == 'HYBRID' else cheapest_plant['resource_type'] 
+        payload = {'player_name': self.name, resource_to_buy: cheapest_plant['resource_cost']}
+        response = requests.post(SERVER_URL + '/buy', json=payload, cookies=self.player_token).json()
+        if response.get('status') != 'SUCCESS':
+            print('Invalid move')
+
     def _build(self):
         pass
     def _power(self):
