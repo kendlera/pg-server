@@ -61,7 +61,7 @@ class PlayerController(Controller):
 			return json.dumps({"status":"FAIL", "msg": "The game is full!"})
 
 		try:
-			name = request.form["player_name"]
+			name = request.get_json()["player_name"]
 		except BadRequestKeyError:
 			return json.dumps({"status": "FAIL", "msg":"Missing 'player_name' Parameter"})
 
