@@ -10,6 +10,15 @@ import sys
 # Change this to the address of the server you're running against
 SERVER_URL = 'http://127.0.0.1:5050'
 
+# Resource bins.  This is how the resources are grouped on the board
+# Represented as (Cost, capacity, current)
+RESOURCE_BINS = {
+    'COAL': [(9, 2, 0), (8, 2, 0), (7, 2, 0), (6, 3, 0), (5, 3, 0), (4, 3, 0), (3, 4, 0), (2, 4, 0), (1, 4, 0)],
+    'GAS': [(8, 3, 0), (7, 3, 0), (6, 3, 0), (5, 3, 0), (4, 3, 0), (3, 4, 0), (2, 4, 0), (1, 4, 0)],
+    'OIL': [(9, 4, 0), (8, 2, 0), (7, 2, 0), (6, 2, 0), (5, 2, 0), (4, 2, 0), (3, 2, 0). (2, 2, 0), (1, 2, 0)],
+    'URANIUM': [(9, 2, 0), (8, 2, 0), (7, 2, 0), (6, 1, 0), (5, 1, 0), (4, 1, 0), (3, 1, 0), (2, 1, 0), (1, 1, 0)]
+}
+
 class Player:
     # Each one of these players will be able to play a full game
     # All logic will just live in here, but feel free to split things out
@@ -101,6 +110,25 @@ class Player:
         pass
     def _power(self):
         pass
+    
+    def _resource_cost(self, amt, resource_state, resource_to_buy):
+        global RESOURCE_BINS
+        if amt > resource_state[resource_to_buy]:
+            return "sorry only {} {} is available".format(str(resource_state[resource_to_buy]), resource_to_buy)
+        bins = dict(**RESOURCE_BINS)
+        for i in range(resource_state[resource_to_buy]):
+
+        
+        def fill_bin(what):
+            for i in range(resource_state[what]):
+                bin_dic[what][i][1] = 1
+
+        fill_bin(what)
+        monies = [a[0]*a[1] for a in bin_dic[what] if a[1]>0]
+        run_sum = 0
+        for i in range(len(monies)-1, len(monies)- to_buy-1, -1):
+            run_sum += monies[i]
+        return run_sum
 
 def start_game(name):
     player = Player(name)
