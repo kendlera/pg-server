@@ -1,79 +1,5 @@
 
 
-#market_state = requests.get(server_url + "/market").json()
-
-# market_state = {
-#     "futures_market": [
-#         {
-#             "resource_type": "COAL",
-#             "market_cost": 9,
-#             "type": "dark",
-#             "generators": 2,
-#             "resource_cost": 3
-#         },
-#         {
-#             "resource_type": "CLEAN",
-#             "market_cost": 11,
-#             "type": "dark",
-#             "generators": 1,
-#             "resource_cost": 0
-#         },
-#         {
-#             "resource_type": "COAL",
-#             "market_cost": 12,
-#             "type": "dark",
-#             "generators": 2,
-#             "resource_cost": 2
-#         },
-#         {
-#             "resource_type": "GAS",
-#             "market_cost": 14,
-#             "type": "dark",
-#             "generators": 2,
-#             "resource_cost": 1
-#         },
-#         {
-#             "resource_type": "COAL",
-#             "market_cost": 15,
-#             "type": "dark",
-#             "generators": 2,
-#             "resource_cost": 1
-#         }
-#     ],
-#     "current_market": [
-#         {
-#             "resource_type": "GAS",
-#             "market_cost": 5,
-#             "type": "dark",
-#             "generators": 1,
-#             "resource_cost": 2
-#         },
-#         {
-#             "resource_type": "OIL",
-#             "market_cost": 6,
-#             "type": "dark",
-#             "generators": 1,
-#             "resource_cost": 1
-#         },
-#         {
-#             "resource_type": "COAL",
-#             "market_cost": 7,
-#             "type": "dark",
-#             "generators": 1,
-#             "resource_cost": 1
-#         },
-#         {
-#             "resource_type": "HYBRID",
-#             "market_cost": 8,
-#             "type": "dark",
-#             "generators": 3,
-#             "resource_cost": 2
-#         }
-#     ],
-#     "top_color": "light"
-# }
-
-#print(len(market_state['current_market']))
 
 def the_best_card(market_state):
     def calc_card_ev():
@@ -117,7 +43,6 @@ def the_best_card(market_state):
             bc = evc[0]
     return bc
 
-#print(the_best_card(market_state))
 
 
 
