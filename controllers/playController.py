@@ -63,24 +63,25 @@ class PlayController(Controller):
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		player_id = session['player_id']
 		name = self.game.get_player_name(player_id)
-		# print(request.form)
-		# print(request)
+		player_req = request.get_json()
 		try:
-			bid = request.form["bid"]
+			bid = player_req["bid"]
 			bid = int(bid)
 		except BadRequestKeyError:
 			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' parameter"})
 		except ValueError:
 			return json.dumps({"status": "FAIL", "msg":"'bid' must be a valid integer"})
+		except TypeError:
+			return json.dumps({"status": "FAIL", "msg":"Your content must be sent as json!"})
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
 		if can_decide and not self.game.auction.auction_in_progress and bid == -1:
-			# special case! You cannot pass the turn in the first round 
+			# special case! You cannot pass the turn in the first round
 			if not self.verifier.player_can_pass(player_id):
 				return json.dumps({"status": "FAIL", "msg":"You cannot pass on bidding in the first round!"})
 			# we don't need the other parameters
 			return self.pass_the_bid(name, player_id)
 		try:
-			powerplant_id = request.form["powerplant_id"]
+			powerplant_id = player_req["powerplant_id"]
 			powerplant_id = int(powerplant_id)
 		except BadRequestKeyError:
 			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' parameter"})
@@ -89,7 +90,7 @@ class PlayController(Controller):
 
 		if self.verifier.player_has_3_plants(player_id) and bid > -1:  # we don't require a 'trash' if the player decides to pass
 			try:
-				trash_id = request.form["trash"]
+				trash_id = player_req["trash"]
 				trash_id = int(trash_id)
 			except BadRequestKeyError:
 				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' parameter"})
@@ -97,12 +98,10 @@ class PlayController(Controller):
 				return json.dumps({"status": "FAIL", "msg":"'trash' must be a valid integer"})
 		else:
 			trash_id = None
-		# can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
 		if not can_decide:
 			return json.dumps({"status": "FAIL", "msg": msg})
 		else:
 			# resolve that we have a valid event!
-			# logger.info("Valid Event! Canceling timeout.")
 			self.timeout_master.cancel()
 		if bid == -1:
 			return self.pass_the_bid(name, player_id)
@@ -130,31 +129,34 @@ class PlayController(Controller):
 		name = self.game.get_player_name(player_id)
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.BUY_RESOURCES)
 		if not can_decide:
-			return json.dumps({"status": "FAIL", "msg": msg}) 
+			return json.dumps({"status": "FAIL", "msg": msg})
 
 		# logger.info("Valid Event! Canceling timeout.")
 		self.timeout_master.cancel()
 
 		resp = {}
-		for item in request.form:
+		player_req = request.get_json()
+		if player_req is None:
+			return json.dumps({"status": "FAIL", "msg": "Your content must be sent as json!"})
+		for item in player_req:
 			if item.lower() == "oil":
-				r_type = RType.OIL 
+				r_type = RType.OIL
 			elif item.lower() == "gas":
-				r_type = RType.GAS 
+				r_type = RType.GAS
 			elif item.lower() == "uranium":
-				r_type = RType.URANIUM 
+				r_type = RType.URANIUM
 			elif item.lower() == "coal":
 				r_type = RType.COAL
-			else: 
+			else:
 				resp[item] = {"status": "FAIL", "msg": "Unable to parse as 'oil' or 'gas' or 'coal' or 'uranium'"}
 				continue
 			resp[item] = {}
 			try:
-				amount = request.form[item]
+				amount = player_req[item]
 				amount = int(amount)
 			except ValueError:
 				resp[item]["status"] = "FAIL"
-				resp[item]["msg"] = "{} requested an invalid integer {}".format(item, request.form[item])
+				resp[item]["msg"] = "{} requested an invalid integer {}".format(item, player_req[item])
 				continue
 			logger.info("{} has requested {} {}".format(name, amount, r_type.name))
 			can_buy, msg, num_buy = self.verifier.can_buy_resources(player_id, r_type, amount)
@@ -167,8 +169,8 @@ class PlayController(Controller):
 			if num_buy > 0:
 				cost = self.game.buy_resources(player_id, r_type, num_buy)
 				logger.info("{} purchased {} {} for {} money".format(name, num_buy, r_type.name, cost))
-				resp[item]["amount"] = num_buy 
-				resp[item]["cost"] = cost 
+				resp[item]["amount"] = num_buy
+				resp[item]["cost"] = cost
 		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
 		self.timeout_master.start()
 		self.game.next_turn()
@@ -189,6 +191,8 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg":"Missing 'paths' parameter", "cost": 0})
 		except AssertionError:
 			return json.dumps({"status": "FAIL", "msg":"'paths' must be a list"})
+		except TypeError:
+			return json.dumps({"status": "FAIL", "msg":"Your content must be sent as json!"})
 
 		can_decide, msg = self.verifier.is_turn(player_id, Phase.BUILD_GENERATORS)
 		if not can_decide:
@@ -244,6 +248,8 @@ class PlayController(Controller):
 			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplants' Parameter"})
 		except AssertionError:
 			return json.dumps({"status": "FAIL", "msg":"'powerplants' must be a list"})
+		except TypeError:
+			return json.dumps({"status": "FAIL", "msg":"Your content must be sent as json!"})
 		if self.verifier.plants_are_hybrid(player_id, powerplants):
 			try:
 				num_oil = data["num_oil"]
@@ -277,9 +283,8 @@ class PlayController(Controller):
 				status.append("SUCCESS")
 				power = self.game.plant_powered(player_id, plant, num_oil-remaining_oil)
 				msgs.append("Powerplant {} generated {} power".format(plant, power))
-				total_power += power 
+				total_power += power
 		profit = self.game.player_powered(player_id, total_power)
 		self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
 		self.timeout_master.start()
 		return json.dumps({"status":status, "msg": msgs, "profit": profit})
-

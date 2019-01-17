@@ -88,10 +88,10 @@ def main(player_name, my_info, player_token):
         payload[r[1]]= r[2]
     print('buy_resource payload', payload)
     response = buy_resource(my_info['info']['name'],player_token, payload)
-    # if response.get('status') != 'SUCCESS':
-    #     print('buy resource not success??', response.get('msg'))
+    if response.get('status') != 'SUCCESS':
+        print('response msg ', response.get('msg'))
 
 
 def buy_resource(player_name, player_token, payload):
-    response = requests.post(server_url + "/buy", data=payload, cookies=player_token).json()
+    response = requests.post(server_url + "/buy", json=payload, cookies=player_token).json()
     return response

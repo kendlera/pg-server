@@ -63,7 +63,8 @@ def main(player, my_info, player_token):
             players_cities.append(c)
 
     response = choose_generator(my_info['info']['name'], player_token, players_cities, my_info)
-
+    if response.get('status') != 'SUCCESS':
+        print('response msg ', response.get('msg'))
 
 def choose_generator(player_name, player_token, players_cities, my_city_info):
     my_info = requests.get(server_url + "/my_info", cookies=player_token).json()

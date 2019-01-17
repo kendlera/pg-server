@@ -27,7 +27,8 @@ def main(player, market_state, auction_state, all_players_state, player_token):
         #     #pass
         #     response = bid(player.get('info').get('name'), player_token, -1, powerplant_id)
         response = bid(player.get('info').get('name'), player_token, -1, powerplant_id)
-
+    if response.get('status') != 'SUCCESS':
+        print('response msg ', response.get('msg'))
 
 
 
@@ -46,6 +47,6 @@ def bid(player_name, player_token, amt, powerplant_id):
     payload = dict(player_name=player_name, powerplant_id=powerplant_id, bid=amt)
     payload['trash'] = trsh
     print('auction payload  ', payload)
-    response = requests.post(server_url + "/bid", data=payload, cookies=player_token).json()
+    response = requests.post(server_url + "/bid", json=payload, cookies=player_token).json()
     return response
 

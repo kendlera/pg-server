@@ -38,6 +38,8 @@ def main(player, my_info, player_token):
     response = choose_power(my_info['info']['name'], player_token)
     #print(json.dumps(my_info, indent=4))
     #print('name = ',my_info['info']['name'], 'money = ', my_info['info']['money'], '   resources = ', my_info['info']['resources'])
+    if response.get('status') != 'SUCCESS':
+        print('response msg ', response.get('msg'))
     print('number of turns = ', player.num_turns)
 
 def choose_power(player_name, player_token):
