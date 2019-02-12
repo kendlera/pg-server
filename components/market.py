@@ -109,6 +109,8 @@ class Market:
 				self._sort_market(self.currently_available + self.futures_market)
 			else:
 				self._sort_market(self.currently_available + self.futures_market + [top_card])
+		if self.check_duplicate():
+			print("Found duplicate powerplants in 'trash_low_powerplants'")
 
 
 	def bureaucracy(self):
@@ -117,6 +119,7 @@ class Market:
 		returns True if phase 3 was triggered.
 		'''
 		if self.phase < 3 and not self.flag_3:
+			# we're in phase 2 and have not triggered phase 3
 			highest_card = self.futures_market[-1]
 			self.futures_market = self.futures_market[:-1]
 			self.deck.append(highest_card)
@@ -127,15 +130,21 @@ class Market:
 					self.update_phase(2)
 				self.update_phase(3)
 				self._sort_market(self.currently_available + self.futures_market)
+				if self.check_duplicate():
+					print("Found duplicate powerplants in 'bureaucracy' case 1")
 				return True
 			else:
 				self._sort_market(self.currently_available + self.futures_market + [top_card])
+				if self.check_duplicate():
+					print("Found duplicate powerplants in 'bureaucracy' case 2")
 				return False
 		elif self.flag_3:
 			self.update_phase(3)
 			self.flag_3 = False
 			self.currently_available = self.currently_available[1:]
 			self._sort_market(self.currently_available + self.futures_market)
+			if self.check_duplicate():
+				print("Found duplicate powerplants in 'bureaucracy' case 3")
 			return True
 		else:
 			# phase 3
@@ -145,6 +154,8 @@ class Market:
 				top_card = self.deck[0]
 				self.deck = self.deck[1:]
 				self._sort_market(self.currently_available + [top_card])
+			if self.check_duplicate():
+				print("Found duplicate powerplants in 'bureaucracy' case 4")
 			return False
 
 	def buy(self, powerplant_id):
@@ -161,8 +172,22 @@ class Market:
 					self.flag_3 = True
 				else:
 					self._sort_market(self.currently_available + self.futures_market + [top_card])
+				if self.check_duplicate():
+					print("Found a duplicate card after the 'buy' function!")
 				return bought_plant
 
+	def check_duplicate(self):
+		# we have duplicated powerplants for some reason. this function for debugging only.
+		seen = []
+		for plant in self.currently_available:
+			if plant["market_cost"] in seen:
+				return True 
+			seen.append(plant["market_cost"])
+		for plant in self.futures_market:
+			if plant["market_cost"] in seen:
+				return True 
+			seen.append(plant["market_cost"])
+		return False
 
 
 
