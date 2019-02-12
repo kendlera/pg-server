@@ -110,11 +110,15 @@ Otherwise:
 	{ <cityname> : [list of player's names who have built there], ... }
 	
 --------------------------------------------------------------------------------------------------
-/resources  GET 			-- the number of currently available resources for each type
+/resources  GET 			-- the number of currently available resources for each type represented as reource bins
 
 If the game has not yet started:
 	{"msg": "The game has not yet started"}
 
 Otherwise
-	{"OIL": number of oil, "GAS": number of gas, "URANIUM": number of uranium, "COAL": number of coal}
-
+	{
+		"OIL": [(cost, max, current), (cost, max, current)...],
+		"GAS": [(cost, max, current), (cost, max, current)...],
+		"URANIUM": [(cost, max, current), (cost, max, current)...],
+		"COAL": [(cost, max, current), (cost, max, current)...],
+	}
