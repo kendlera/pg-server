@@ -182,7 +182,10 @@ class Game:
 						self.market.buy(pplant["market_cost"])
 			self.next_turn()
 		else:
+			self.auction.advance_bid()
 			self.auction.can_bid.remove(player_id)
+			if self.auction.current_bidder != 0:
+				self.auction.current_bidder -= 1
 			# logger.info("{} passed. Remaining Players: {}".format(player_id, self.auction.can_bid))
 			if len(self.auction.can_bid) == 1:
 				self.auction.auction_in_progress = False
@@ -201,8 +204,6 @@ class Game:
 						if player.player_id == self.player_order[self.current_player]:
 							self.next_turn()
 						break
-			else:
-				self.auction.advance_bid()
 
 
 	def auction_bid(self, player_id, bid, powerplant, trash_id):

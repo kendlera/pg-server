@@ -38,7 +38,8 @@ NOTE: this endpoint requires your player cookie to get passed to it
 					      "resource_type": "GAS" || "OIL" || "COAL" || "URANIUM" || "HYBRID" || "CLEAN",
 					      "type": "light" || "dark"
 					    }, ...]
-		}
+		},
+		"can_bid": boolean indicating if they can still bid this turn
 }
 
 --------------------------------------------------------------------------------------------------
