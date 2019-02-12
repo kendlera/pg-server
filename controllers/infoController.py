@@ -43,6 +43,8 @@ class InfoController(Controller):
 		'''
 		returns all the information for all the players
 		'''
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
 		all_players = []
 		for player in self.game.players:
 			all_players.append(self.get_player_info(player.player_id))
@@ -55,6 +57,8 @@ class InfoController(Controller):
 		'''
 		if 'player_id' not in session:
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
+		if not self.game.started:
+			return json.dumps({"msg": "The game has not yet started"})
 		info = self.get_player_info(session['player_id'])
 		return json.dumps({"info": info}) 
 
@@ -151,8 +155,24 @@ class InfoController(Controller):
 		'''
 		if not self.game.started:
 			return json.dumps({"msg": "The game has not yet started"})
-		resource_bank = {}
+		resource_bins = {
+			"COAL": [(9, 2, 0), (8, 2, 0), (7, 2, 0), (6, 3, 0), (5, 3, 0), (4, 3, 0), (3, 4, 0), (2, 4, 0), (1, 4, 0)],
+			"GAS": [(8, 3, 0), (7, 3, 0), (6, 3, 0), (5, 3, 0), (4, 3, 0), (3, 4, 0), (2, 4, 0), (1, 4, 0)],
+			"OIL": [(9, 4, 0), (8, 2, 0), (7, 2, 0), (6, 2, 0), (5, 2, 0), (4, 2, 0), (3, 2, 0), (2, 2, 0), (1, 2, 0)],
+			"URANIUM": [(9, 2, 0), (8, 2, 0), (7, 2, 0), (6, 1, 0), (5, 1, 0), (4, 1, 0), (3, 1, 0), (2, 1, 0), (1, 1, 0)]
+		}
+		def _fill_bin(remaining_resources, bin):
+			cost, max, _ = bin
+			if max > remaining_resources:
+				return (cost, max, remaining_resources), 0
+			else:
+				return (cost, max, max), remaining_resources - max
 		for r_type in self.game.resources.currently_available:
-			resource_bank[r_type.name] = self.game.resources.currently_available[r_type]
-		return json.dumps(resource_bank)
+			remaining_resources = self.game.resources.currently_available[r_type]
+			current_bin_index = 0
+			while remaining_resources > 0:
+				resource_bins[r_type.name][current_bin_index], remaining_resources = _fill_bin(remaining_resources, resource_bins[r_type.name][current_bin_index])
+				current_bin_index += 1
+
+		return json.dumps(resource_bins)
 

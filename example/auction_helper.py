@@ -8,8 +8,7 @@ server_url = SERVER_HOST + ":" + SERVER_PORT
 def main(player, market_state, auction_state, all_players_state, player_token):
     if auction_state.get('auction_in_progress') == False:
         # Bid of new powerplant
-        powerplant_id = market_state.get('current_market')[
-            0].get('market_cost')
+        powerplant_id = market_state.get('current_market')[0].get('market_cost')
         response = bid(player.get('info').get('name'),
                        player_token, powerplant_id, powerplant_id)
         if response.get('status') != 'SUCCESS':
@@ -39,5 +38,5 @@ def bid(player_name, player_token, amt, powerplant_id):
     payload = dict(player_name=player_name,
                    powerplant_id=powerplant_id, bid=amt)
     response = requests.post(
-        server_url + "/bid", data=payload, cookies=player_token).json()
+        server_url + "/bid", json=payload, cookies=player_token).json()
     return response
