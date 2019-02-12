@@ -75,7 +75,7 @@ class InfoController(Controller):
 		else:
 			current_player = self.game.get_player_name(self.game.auction.get_current_bidder())
 		current_stage = self.game.phase.name
-		return json.dumps({"current_player": current_player, "phase": current_stage}) 
+		return json.dumps({"current_player": current_player, "phase": current_stage, "stage": self.game.step}) 
 
 	@route("/auction", methods=['GET'])
 	def auction(self):

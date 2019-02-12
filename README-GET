@@ -48,10 +48,10 @@ If the game has yet to begin (not all players have registered):
 	{"msg": "The game has not yet started"})
 
 If the server is currently adjusting game state as part of Beaurocracy:
-	{"current_player": "Calculating...", "phase": "DETERMINE_PLAYER_ORDER"}
+	{"current_player": "Calculating...", "phase": "DETERMINE_PLAYER_ORDER", "stage": <int 1-3>}
 
 Otherwise:
-	{"current_player": <player's name>, "phase": "AUCTION" || "BUY_RESOURCES" || "BUILD_GENERATORS" || "BUREAUCRACY"}
+	{"current_player": <player's name>, "phase": "AUCTION" || "BUY_RESOURCES" || "BUILD_GENERATORS" || "BUREAUCRACY", "stage": <int 1-3>}
 
 --------------------------------------------------------------------------------------------------
 /auction  GET 				-- returns whether or not there is an auction in progress & relevant information if so

@@ -84,6 +84,7 @@ class Verifier:
 		for player in self.game.players:
 			if player.player_id == player_id:
 				can_hold = player.additional_amount_can_hold(r_type)
+				break
 		num_can_buy = 0
 		while num_can_buy < amount and num_can_buy < available and num_can_buy < can_hold:
 			cost = self.game.resources.cost_to_buy(r_type, num_can_buy+1)
@@ -97,6 +98,9 @@ class Verifier:
 			return False, "Only {} of this resource is available!".format(available), available
 		elif num_can_buy == can_hold:
 			return False, "Player can only hold {} more resources on current powerplants".format(can_hold), can_hold
+		# these statements for debugging only; remove once ticket is resolved
+		print("Error: {} failed 'can_buy_resources' call for {} {}".format(player_id, r_type, amount))
+		print("\t{} available in market, player can hold {}".format(available, can_hold))
 
 	def is_valid_build(self, player_id, path):
 		if self.game.board.num_cities(player_id) == 0:
