@@ -1,0 +1,9 @@
+{
+	"green":["Warszawa", "Minsk", "Moskwa", "Kharkiv", "Kyjiv", "Odessa", "Bucuresti"],
+	"orange": ["Riga", "Tallinn", "Sankt-Peterburg", "Helsinki", "Stockholm", "Oslo", "Kobenhavn"],
+	"brown": ["Bremen", "Berlin", "Praha", "Katowice", "Munchen", "Rhein-Main", "Stuttgart"],
+	"purple": ["Rhein-Ruhr", "Vlaanderen", "Randstad", "London", "Birmingham", "Glasgow", "Dublin"],
+	"red": ["Lisboa", "Madrid", "Barcelona", "Marseille", "Lyon", "Paris", "Bordeaux"],
+	"blue": ["Beograd", "Sofia", "Tirane", "Athina", "Izmir", "Ankara", "Istanbul"],
+	"yellow": ["Milano", "Roma", "Napoli", "Zurich", "Zagreb", "Wien", "Budapest"]
+}

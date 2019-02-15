@@ -1,6 +1,8 @@
 import networkx as nx 
 import logging
 import os
+import json
+import random
 from components import DATA_DIR
 logger = logging.getLogger('board')
 logger.setLevel(logging.INFO)
@@ -10,6 +12,7 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 EDGELIST = os.path.join(DATA_DIR, "map.edgelist")
+CITYCOLORS = os.path.join(DATA_DIR, "city_colors.json")
 class Board:
 
 	def __init__(self, settings, phase=1):
@@ -18,6 +21,8 @@ class Board:
 		phase: current phase of the game; should always be 1
 		'''
 		self.board = nx.read_weighted_edgelist(EDGELIST)
+		invalid_cities = self._random_choose_play_area(settings['num_players'])
+		self._strip_cities(invalid_cities)
 		self._initialize_costs()
 		self.phase = phase
 
@@ -25,6 +30,40 @@ class Board:
 		for city in self.board.nodes():
 			self.board.node[city]["cost"] = 10
 			self.board.node[city]["slots"] = []
+
+	def _strip_cities(self, invalid_cities):
+		for city in invalid_cities:
+			self.board.remove_node(city)
+
+	def _random_choose_play_area(self, num_players):
+		'''
+		based on the number of players registered, we chose a 
+		subset of cities to play with. The regions must be contiguous! 
+		Returns list of cities that we later remove from the board.
+		'''
+		num_areas = [0, 0, 0, 3, 4, 5, 5][num_players]
+		if num_areas == 5:
+			# if we need to pick 5, we can also just remove a random 1
+			colors = ['brown', 'red', 'purple', 'blue', 'yellow', 'green']
+			valid_colors = colors.remove(random.choice(colors))
+		else:
+			eur_connections = [('brown', 'red'), ('brown', 'purple'),  ('brown', 'yellow'),  ('brown', 'green'),  ('brown', 'orange'), ('purple', 'red'), ('red', 'yellow'), ('yellow', 'blue'), ('yellow', 'green'), ('blue', 'green'), ('orange', 'green')]
+			valid_colors = list(random.choice(eur_connections))
+			while len(valid_colors) < num_areas:
+				# get connections with exactly 1 already chosen color
+				candidates = [link for link in eur_connections if (bool(link[0] in valid_colors) ^ bool(link[1] in valid_colors))]
+				link = random.choice(candidates)
+				if link[0] in valid_colors:
+					valid_colors.append(link[1])
+				else:
+					valid_colors.append(link[0])
+		with open(CITYCOLORS, 'r') as colorfile:
+			city_colors = json.load(colorfile)
+		invalid_cities = []
+		for color in city_colors:
+			if color not in valid_colors:
+				invalid_cities += city_colors[color]
+		return invalid_cities
 
 	def cities_owned_by_player(self, player_id):
 		'''
