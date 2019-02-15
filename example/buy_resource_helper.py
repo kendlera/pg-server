@@ -19,7 +19,7 @@ def cur_cheapest_res(my_info, resource_state):
         else:
             type_resource = p['resource_type']
         #print('resource type  ', p['resource_type'])
-        cur_best.append([p['market_cost'], p['resource_cost'],type_resource, p['generators'], (p['generators']/(how_much_to_buy(resource_state, p['resource_cost'], type_resource)+.0001))])
+        cur_best.append([p['market_cost'], p['resource_cost'],type_resource, p['generators'], int(p['generators']/(how_much_to_buy(resource_state, p['resource_cost'], type_resource)+.0001))])
     def take_third(elem):
         return elem[4]
     cur_best.sort(key=take_third, reverse=True)
@@ -82,14 +82,15 @@ def how_much_to_buy(resource_state, to_buy, what):
 def main(player_name, my_info, player_token):
     my_info = requests.get(server_url + "/my_info",cookies=player_token).json()
     res_to_buy = requests.get(server_url + "/resources").json()
+    print('resource state ', res_to_buy)
     res_desired = best_poss_res(my_info,res_to_buy)
     payload = dict(player_name=my_info['info']['name'])
     for r in res_desired:
         payload[r[1]]= r[2]
     print('buy_resource payload', payload)
     response = buy_resource(my_info['info']['name'],player_token, payload)
-    if response.get('status') != 'SUCCESS':
-        print('response msg ', response.get('msg'))
+    #if response.get('status') != 'SUCCESS':
+    print('response msg ', response.get('msg'))
 
 
 def buy_resource(player_name, player_token, payload):

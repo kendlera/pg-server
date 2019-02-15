@@ -23,7 +23,7 @@ def pps_need_to_power(my_info):
         elif r == 'CLEAN':
             pp_to_power.append(p['market_cost'])
         else:
-            if my_pp[r] <= my_info['info']['resources'][r]:
+            if (my_pp[r] <= my_info['info']['resources'][r]) and (my_pp[r] > 0):
                 for p in my_info['info']['powerplants']:
                     if p['resource_type'] == r:
                         pp_to_power.append(p['market_cost'])
@@ -38,8 +38,8 @@ def main(player, my_info, player_token):
     response = choose_power(my_info['info']['name'], player_token)
     #print(json.dumps(my_info, indent=4))
     #print('name = ',my_info['info']['name'], 'money = ', my_info['info']['money'], '   resources = ', my_info['info']['resources'])
-    if response.get('status') != 'SUCCESS':
-        print('response msg ', response.get('msg'))
+    #if response.get('status') != 'SUCCESS':
+    print('response msg ', response.get('msg'))
     print('number of turns = ', player.num_turns)
 
 def choose_power(player_name, player_token):

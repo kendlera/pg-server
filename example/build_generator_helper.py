@@ -58,13 +58,14 @@ def main(player, my_info, player_token):
     my_cities = my_info['info']['cities']
     players_cities = []
     all_city_info = requests.get(server_url + "/player_info").json()
+    print('player info', all_city_info)
     for p in all_city_info['info']:
         for c in p['cities']:
             players_cities.append(c)
 
     response = choose_generator(my_info['info']['name'], player_token, players_cities, my_info)
-    if response.get('status') != 'SUCCESS':
-        print('response msg ', response.get('msg'))
+    #if response.get('status') != 'SUCCESS':
+    print('response msg ', response.get('msg'))
 
 def choose_generator(player_name, player_token, players_cities, my_city_info):
     my_info = requests.get(server_url + "/my_info", cookies=player_token).json()

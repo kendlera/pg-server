@@ -278,7 +278,7 @@ class PlayController(Controller):
 			can_power, msg, remaining_oil = self.verifier.player_can_power(player_id, plant, num_oil)
 			if not can_power:
 				status.append("FAIL")
-				msg.append(msg)
+				msgs.append(msg)
 			else:
 				status.append("SUCCESS")
 				power = self.game.plant_powered(player_id, plant, num_oil-remaining_oil)

@@ -32,9 +32,11 @@ class Player:
     def do_auction(self):
         print("in the auction")
         market_state = requests.get(server_url + "/market").json()
+        print('market state', market_state)
         my_info = requests.get(server_url + "/my_info", cookies=self.player_token).json()
         print(json.dumps(my_info, indent=4))
         all_player_info = requests.get(server_url + "/player_info").json()
+        print(json.dumps(all_player_info, indent=4))
         auction_state = requests.get(server_url + "/auction").json()
         AH.main(my_info, market_state, auction_state, all_player_info, self.player_token)
         #print('money = ', my_info['info']['money'])
@@ -53,6 +55,8 @@ class Player:
         my_info = requests.get(server_url + "/my_info", cookies=self.player_token).json()
         print(json.dumps(my_info, indent=4))
         all_player_info = requests.get(server_url + "/player_info").json()
+        city_occupied = requests.get(server_url + "/city_status").json()
+        print('city occupied', city_occupied)
         GH.main(player, my_info, self.player_token)
         #print('money = ', my_info['info']['money'])
 

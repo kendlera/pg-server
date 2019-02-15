@@ -27,8 +27,8 @@ def main(player, market_state, auction_state, all_players_state, player_token):
         #     #pass
         #     response = bid(player.get('info').get('name'), player_token, -1, powerplant_id)
         response = bid(player.get('info').get('name'), player_token, -1, powerplant_id)
-    if response.get('status') != 'SUCCESS':
-        print('response msg ', response.get('msg'))
+    #if response.get('status') != 'SUCCESS':
+    print('response msg ', response.get('msg'))
 
 
 
