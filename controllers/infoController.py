@@ -36,6 +36,7 @@ class InfoController(Controller):
 				for resource in player.resources:
 					resource_copy[resource.name] = player.resources[resource]
 				info["resources"] = resource_copy
+				info["can_bid"] = player.can_bid
 		return info
 	
 	@route("/player_info", methods=['GET'])
@@ -68,7 +69,7 @@ class InfoController(Controller):
 			return json.dumps({"msg": "The game has not yet started"})
 		if not self.game.auction.auction_in_progress:
 			if self.game.current_player == -1:
-				# currently re-calculating for BEAUROCRACY
+				# currently re-calculating for BUREAURACY
 				current_player = "Calculating..."
 			else:
 				current_player = self.game.get_player_name(self.game.player_order[self.game.current_player])
@@ -155,24 +156,25 @@ class InfoController(Controller):
 		'''
 		if not self.game.started:
 			return json.dumps({"msg": "The game has not yet started"})
-		resource_bins = {
+		resource_buckets = {
 			"COAL": [(9, 2, 0), (8, 2, 0), (7, 2, 0), (6, 3, 0), (5, 3, 0), (4, 3, 0), (3, 4, 0), (2, 4, 0), (1, 4, 0)],
 			"GAS": [(8, 3, 0), (7, 3, 0), (6, 3, 0), (5, 3, 0), (4, 3, 0), (3, 4, 0), (2, 4, 0), (1, 4, 0)],
 			"OIL": [(9, 4, 0), (8, 2, 0), (7, 2, 0), (6, 2, 0), (5, 2, 0), (4, 2, 0), (3, 2, 0), (2, 2, 0), (1, 2, 0)],
 			"URANIUM": [(9, 2, 0), (8, 2, 0), (7, 2, 0), (6, 1, 0), (5, 1, 0), (4, 1, 0), (3, 1, 0), (2, 1, 0), (1, 1, 0)]
 		}
-		def _fill_bin(remaining_resources, bin):
-			cost, max, _ = bin
-			if max > remaining_resources:
-				return (cost, max, remaining_resources), 0
+		def _fill_bucket(remaining_resources, bucket):
+			cost, capacity, _ = bucket
+			if capacity > remaining_resources:
+				return (cost, capacity, remaining_resources), 0
 			else:
-				return (cost, max, max), remaining_resources - max
+				return (cost, capacity, capacity), remaining_resources - capacity
 		for r_type in self.game.resources.currently_available:
 			remaining_resources = self.game.resources.currently_available[r_type]
-			current_bin_index = 0
+			current_bucket_index = 0
 			while remaining_resources > 0:
-				resource_bins[r_type.name][current_bin_index], remaining_resources = _fill_bin(remaining_resources, resource_bins[r_type.name][current_bin_index])
-				current_bin_index += 1
+				resource_buckets[r_type.name][current_bucket_index], \
+				remaining_resources = _fill_bucket(remaining_resources, resource_buckets[r_type.name][current_bucket_index])
+				current_bucket_index += 1
 
-		return json.dumps(resource_bins)
+		return json.dumps(resource_buckets)
 
