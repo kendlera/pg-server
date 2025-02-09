@@ -4,6 +4,15 @@ from controllers.controller import Controller
 from components.rType import RType
 import copy
 import json
+import logging
+
+logger = logging.getLogger('pg_server.InfoController')
+if not logger.handlers:
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler('server.log')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
 '''
 file allowing player to request information about various components of the board
@@ -57,16 +66,22 @@ class InfoController(Controller):
 		returns the information for the requesting player
 		'''
 		if 'player_id' not in session:
+			logger.info("my_info requested without player_id in session")
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
 		if not self.game.started:
+			logger.info("my_info requested but game not started")
 			return json.dumps({"msg": "The game has not yet started"})
+			
 		info = self.get_player_info(session['player_id'])
-		return json.dumps({"info": info}) 
+		logger.debug(f"my_info response for {info.get('name', 'unknown')}: {info}")
+		return json.dumps(info) 
 
 	@route("/turn_info", methods=['GET'])
 	def turn_info(self):
 		if not self.game.started:
+			logger.info("Turn info requested but game not started")
 			return json.dumps({"msg": "The game has not yet started"})
+			
 		if not self.game.auction.auction_in_progress:
 			if self.game.current_player == -1:
 				# currently re-calculating for BUREAURACY
@@ -75,8 +90,11 @@ class InfoController(Controller):
 				current_player = self.game.get_player_name(self.game.player_order[self.game.current_player])
 		else:
 			current_player = self.game.get_player_name(self.game.auction.get_current_bidder())
+			
 		current_stage = self.game.phase.name
-		return json.dumps({"current_player": current_player, "phase": current_stage, "stage": self.game.step}) 
+		response = {"current_player": current_player, "phase": current_stage, "stage": self.game.step}
+		logger.info(f"Turn info: {response}")
+		return json.dumps(response) 
 
 	@route("/auction", methods=['GET'])
 	def auction(self):
@@ -145,7 +163,7 @@ class InfoController(Controller):
 			return json.dumps({"msg": "The game has not yet started"})
 		cities = {}
 		for city in self.game.board.board.nodes():
-			players = self.game.board.board.node[city]["slots"]
+			players = self.game.board.board.nodes[city]["slots"]
 			cities[city] = [self.game.get_player_name(x) for x in players]
 		return json.dumps(cities) 
 

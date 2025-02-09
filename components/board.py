@@ -28,8 +28,8 @@ class Board:
 
 	def _initialize_costs(self):
 		for city in self.board.nodes():
-			self.board.node[city]["cost"] = 10
-			self.board.node[city]["slots"] = []
+			self.board.nodes[city]["cost"] = 10
+			self.board.nodes[city]["slots"] = []
 
 	def _strip_cities(self, invalid_cities):
 		for city in invalid_cities:
@@ -69,7 +69,7 @@ class Board:
 		'''
 		returns a list of cities owned by the player
 		'''
-		cities = [city for city in self.board.nodes() if player_id in self.board.node[city]["slots"]]
+		cities = [city for city in self.board.nodes() if player_id in self.board.nodes[city]["slots"]]
 		return cities
 
 	def num_cities(self, player_id):
@@ -80,7 +80,7 @@ class Board:
 		return len(cities)
 
 	def update_cost(self, city):
-		purchased = self.board.node[city]
+		purchased = self.board.nodes[city]
 		if purchased["cost"] == 10:
 			purchased["cost"] = 15 
 		elif purchased["cost"] == 15:
@@ -93,7 +93,7 @@ class Board:
 		allows the player to purchase a slot in the city designated
 		'''
 		city_name = path[-1]
-		purchased = self.board.node[city_name]
+		purchased = self.board.nodes[city_name]
 		path_cost = self.cost_of_path(path)
 		city_cost = self.cost_of_city(city_name)
 		purchased["slots"].append(player_id)
@@ -106,7 +106,7 @@ class Board:
 		'''
 		if city not in self.board.nodes():
 			return False, "{} not a valid city name".format(city)
-		slots = self.board.node[city]["slots"]
+		slots = self.board.nodes[city]["slots"]
 		if player_id in slots:
 			return True, "{} in {}".format(player_id, city)
 		else:
@@ -118,7 +118,7 @@ class Board:
 		'''
 		if city not in self.board.nodes():
 			return False, "{} not valid city name".format(city)
-		slots = self.board.node[city]["slots"]
+		slots = self.board.nodes[city]["slots"]
 		if len(slots) >= self.phase:
 			return False, "{} already has {} generators built".format(city, len(slots))
 		if player_id in slots:
@@ -129,7 +129,7 @@ class Board:
 		if city not in self.board.nodes():
 			logger.info("{} not valid city name".format(city))
 			return -1 
-		return self.board.node[city]["cost"]
+		return self.board.nodes[city]["cost"]
 
 	def cost_of_path(self, path):
 		'''

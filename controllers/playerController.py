@@ -27,14 +27,14 @@ class PlayerController(Controller):
 		app.secret_key = key
 		self.player_count = 0
 		self.game_started = False
-		self.starter = threading.Timer(40, self.start_game)
+		self.starter = threading.Timer(5, self.start_game)  # Changed from 40 to 5 seconds
 		self.starter.start()
 
 	def start_game(self):
 		if not self.game_started:
 			if self.player_count < 3:
 				logger.info("Not enough players to start! Need at least 3, only {} have registered".format(self.player_count))
-				self.starter = threading.Timer(40, self.start_game)
+				self.starter = threading.Timer(5, self.start_game)  # Changed from 40 to 5 seconds
 				self.starter.start()
 			else:
 				logger.info("Starting the game!")
@@ -48,30 +48,38 @@ class PlayerController(Controller):
 
 	@route("/register", methods=['POST'])
 	def join(self):
+		logger.info("Received registration request")
+		
 		if 'player_id' in session:
 			name = self.service.get_player_name(session['player_id'])
+			logger.info(f"Player already registered as {name}")
 			return json.dumps({"status": "FAIL", "msg": "You have already joined this game as {}".format(name)})
 
 		if self.game_started:
+			logger.info("Registration rejected - game already started")
 			return json.dumps({"status":"FAIL", "msg": "The game has already started!"})
 
 		if self.player_count >= 6:
-			# we probably will never get here because we start the 
-			# game once we get 6 people...
+			logger.info("Registration rejected - game is full")
 			return json.dumps({"status":"FAIL", "msg": "The game is full!"})
 
 		try:
 			name = request.form["player_name"]
+			logger.info(f"Processing registration for {name}")
 		except BadRequestKeyError:
+			logger.warning("Registration missing player_name parameter")
 			return json.dumps({"status": "FAIL", "msg":"Missing 'player_name' Parameter"})
 
 		player_id = uuid.uuid4().hex
 		session['player_id'] = player_id 
 		self.player_count += 1
 		unique_name = self.service.add_player(name, player_id)
-		logger.info("Added player {} to the game".format(unique_name))
+		logger.info(f"Added player {unique_name} (ID: {player_id}) to the game. Total players: {self.player_count}")
+		
 		if self.player_count >= 6:
 			# We have reached the maximum number of players; start the game!
+			logger.info("Max players reached, starting game immediately")
 			self.starter.cancel()
 			self.start_game()
+			
 		return json.dumps({"status": "SUCCESS", "msg": "{} has joined the game!".format(unique_name), "name": unique_name})

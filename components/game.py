@@ -60,13 +60,19 @@ class Game:
 		'''
 		kicks off the game
 		'''
+		logger.info("Starting game with %d players", len(self.players))
 		settings = {'board_type': 'europe', 'num_players': len(self.players)}
+		logger.info("Initializing market")
 		self.market = Market(settings)
+		logger.info("Initializing resources")
 		self.resources = Resources(settings)
+		logger.info("Initializing board")
 		self.board = Board(settings)
+		logger.info("Starting phase one")
 		self.phase_one()
-		logger.info("Initial Order: {}".format(self.player_order))
+		logger.info("Initial Order: %s", [self.get_player_name(pid) for pid in self.player_order])
 		self.started = True
+		logger.info("Game started successfully")
 
 	def next_turn(self):
 		'''
@@ -141,14 +147,18 @@ class Game:
 		'''
 		determine player order
 		'''
-		print("phase one")
+		logger.info("Starting phase one - determining player order")
 		self.current_player = -1
 		if self.player_order == []:
 			# it's the first round! we randomly choose
+			logger.info("First round - randomly choosing player order")
 			players = [player.player_id for player in self.players]
+			logger.debug("Players before shuffle: %s", [self.get_player_name(pid) for pid in players])
 			random.shuffle(players)
-			self.player_order = players 
+			self.player_order = players
+			logger.info("Players after shuffle: %s", [self.get_player_name(pid) for pid in self.player_order])
 		else:
+			logger.info("Determining player order based on cities and powerplants")
 			self.player_order = []
 			not_yet_picked = [player.player_id for player in self.players]
 			while len(self.player_order) != len(self.players):
@@ -159,9 +169,12 @@ class Game:
 				for player in rank:
 					self.player_order.append(player.player_id)
 					not_yet_picked.remove(player.player_id)
-		logger.info("Player Order: {}".format([self.get_player_name(p_id) for p_id in self.player_order]))
+					logger.debug("Added %s to order with %d cities", player.name, num_cities)
+					
+		logger.info("Final Player Order: %s", [self.get_player_name(p_id) for p_id in self.player_order])
 		self.current_player = 0
 		self.phase = Phase.AUCTION
+		logger.info("Phase one complete - moving to auction phase")
 
 	def auction_pass(self, player_id):
 		'''

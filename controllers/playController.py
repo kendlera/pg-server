@@ -8,12 +8,17 @@ import uuid
 import json
 import threading
 import logging
-logger = logging.getLogger('playController')
-logger.setLevel(logging.INFO)
-fh = logging.FileHandler('output.log')
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+
+# Set up root logger
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('server.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger('pg_server.PlayController')
 TIMEOUT_VALUE = 20 # how many seconds each player gets to make a decision
 '''
 manages player action requests
@@ -25,11 +30,22 @@ class PlayController(Controller):
 		self.app = app
 		self.game = service
 		self.verifier = ruler
+		# Set up controller-specific logger
+		self.logger = logging.getLogger('pg_server.PlayController')
+		self.logger.setLevel(logging.DEBUG)
+		# Add file handler if not already present
+		if not self.logger.handlers:
+			fh = logging.FileHandler('server.log')
+			formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+			fh.setFormatter(formatter)
+			self.logger.addHandler(fh)
+		
 		# this is how we will deal with turn time-outs
 		# every time a valid request is made, we will reset this timer
 		self.timeout_master = threading.Timer(3, self.player_timeout)
 		self.first_pass = False 	# we need this to pad the first players response. TODO: find something cleaner?
 		self.timeout_master.start()
+		self.logger.info("PlayController initialized")
 
 	def player_timeout(self):
 		'''
@@ -60,66 +76,95 @@ class PlayController(Controller):
 	@route("/bid", methods=['POST'])
 	def bid(self):
 		if 'player_id' not in session:
+			logger.warning("Bid attempt without player_id in session")
 			return json.dumps({"msg": "You have not joined this game!", "status": "FAIL"})
-		player_id = session['player_id']
-		name = self.game.get_player_name(player_id)
-		player_req = request.get_json()
+		
 		try:
-			bid = player_req["bid"]
-			bid = int(bid)
-		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'bid' parameter"})
-		except ValueError:
-			return json.dumps({"status": "FAIL", "msg":"'bid' must be a valid integer"})
-		except TypeError:
-			return json.dumps({"status": "FAIL", "msg":"Your content must be sent as json!"})
-		can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
-		if can_decide and not self.game.auction.auction_in_progress and bid == -1:
-			# special case! You cannot pass the turn in the first round 
-			if not self.verifier.player_can_pass(player_id):
-				return json.dumps({"status": "FAIL", "msg":"You cannot pass on bidding in the first round!"})
-			# we don't need the other parameters
-			return self.pass_the_bid(name, player_id)
-		try:
-			powerplant_id = player_req["powerplant_id"]
-			powerplant_id = int(powerplant_id)
-		except BadRequestKeyError:
-			return json.dumps({"status": "FAIL", "msg":"Missing 'powerplant_id' parameter"})
-		except ValueError:
-			return json.dumps({"status": "FAIL", "msg":"'powerplant_id' must be a valid integer"})
-
-		if self.verifier.player_has_3_plants(player_id) and bid > -1:  # we don't require a 'trash' if the player decides to pass
+			player_id = session['player_id']
+			name = self.game.get_player_name(player_id)
+			logger.info(f"Received bid request from {name} (id: {player_id})")
+			
+			player_req = request.get_json()
+			logger.debug(f"Bid request data: {player_req}")
+			
 			try:
-				trash_id = player_req["trash"]
-				trash_id = int(trash_id)
-			except BadRequestKeyError:
-				return json.dumps({"status": "FAIL", "msg":"Missing 'trash' parameter"})
-			except ValueError:
-				return json.dumps({"status": "FAIL", "msg":"'trash' must be a valid integer"})
-		else:
-			trash_id = None
-		if not can_decide:
-			return json.dumps({"status": "FAIL", "msg": msg})
-		else:
-			# resolve that we have a valid event!
-			self.timeout_master.cancel()
-		if bid == -1:
-			return self.pass_the_bid(name, player_id)
+				bid = player_req["bid"]
+				bid = int(bid)
+				logger.debug(f"Parsed bid amount: {bid}")
+			except (KeyError, ValueError, TypeError) as e:
+				error_msg = "Missing 'bid' parameter" if isinstance(e, KeyError) else \
+						"'bid' must be a valid integer" if isinstance(e, ValueError) else \
+						"Your content must be sent as json!"
+				logger.warning(f"Bid validation failed: {error_msg}")
+				return json.dumps({"status": "FAIL", "msg": error_msg})
+			
+			can_decide, msg = self.verifier.is_turn(player_id, Phase.AUCTION)
+			logger.debug(f"Turn verification for {name}: can_decide={can_decide}, msg={msg}")
+			
+			if can_decide and not self.game.auction.auction_in_progress and bid == -1:
+				logger.debug(f"Player {name} attempting to pass without auction in progress")
+				# special case! You cannot pass the turn in the first round 
+				if not self.verifier.player_can_pass(player_id):
+					logger.info(f"Player {name} tried to pass in first round")
+					return json.dumps({"status": "FAIL", "msg":"You cannot pass on bidding in the first round!"})
+				# we don't need the other parameters
+				return self.pass_the_bid(name, player_id)
+			
+			try:
+				powerplant_id = player_req["powerplant_id"]
+				powerplant_id = int(powerplant_id)
+				logger.debug(f"Parsed powerplant_id: {powerplant_id}")
+			except (KeyError, ValueError) as e:
+				error_msg = "Missing 'powerplant_id' parameter" if isinstance(e, KeyError) else \
+						"'powerplant_id' must be a valid integer"
+				logger.warning(f"Powerplant validation failed: {error_msg}")
+				return json.dumps({"status": "FAIL", "msg": error_msg})
 
-		is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid, trash_id)
-		if not is_valid:
-			self.game.auction_pass(player_id)
-			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
-			self.timeout_master.start()
-			logger.info("{} submitted an invalid bid; {}".format(name, msg))
-			return json.dumps({"status": "FAIL", "msg" : msg})
-		else:
+			trash_id = None
+			if self.verifier.player_has_3_plants(player_id) and bid > -1:
+				logger.debug(f"Player {name} has 3 plants, checking for trash parameter")
+				try:
+					trash_id = player_req["trash"]
+					trash_id = int(trash_id)
+					logger.debug(f"Parsed trash_id: {trash_id}")
+				except (KeyError, ValueError) as e:
+					error_msg = "Missing 'trash' parameter" if isinstance(e, KeyError) else \
+							"'trash' must be a valid integer"
+					logger.warning(f"Trash validation failed: {error_msg}")
+					return json.dumps({"status": "FAIL", "msg": error_msg})
+
+			if not can_decide:
+				logger.info(f"Player {name} tried to bid out of turn: {msg}")
+				return json.dumps({"status": "FAIL", "msg": msg})
+			
+			# resolve that we have a valid event!
+			logger.debug("Valid bid event, canceling timeout")
+			self.timeout_master.cancel()
+			
+			if bid == -1:
+				logger.info(f"Player {name} chose to pass")
+				return self.pass_the_bid(name, player_id)
+
+			is_valid, msg = self.verifier.is_valid_bid(player_id, powerplant_id, bid, trash_id)
+			logger.debug(f"Bid validation: is_valid={is_valid}, msg={msg}")
+			
+			if not is_valid:
+				self.game.auction_pass(player_id)
+				self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
+				self.timeout_master.start()
+				logger.info(f"Player {name} submitted invalid bid: {msg}")
+				return json.dumps({"status": "FAIL", "msg" : msg})
+			
 			self.game.auction_bid(player_id, bid, powerplant_id, trash_id)
 			self.timeout_master = threading.Timer(TIMEOUT_VALUE, self.player_timeout)
 			self.timeout_master.start()
-			msg = "{} successfully bid {} on Powerplant {}".format(name, bid, powerplant_id)
+			msg = f"{name} successfully bid {bid} on Powerplant {powerplant_id}"
 			logger.info(msg)
 			return json.dumps({"status": "SUCCESS", "msg" : msg})
+			
+		except Exception as e:
+			logger.error(f"Unexpected error in bid endpoint: {str(e)}", exc_info=True)
+			return json.dumps({"status": "FAIL", "msg": "Server error processing bid"})
 
 	@route("/buy", methods=['POST'])
 	def buy(self):

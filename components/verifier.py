@@ -4,24 +4,46 @@ rule enforcer
 '''
 from components.phase import Phase
 from components.rType import RType
+import logging
+
+logger = logging.getLogger('pg_server.Verifier')
+if not logger.handlers:
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler('server.log')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
 class Verifier:
 	def __init__(self, game):
 		self.game = game
 
 	def is_turn(self, player_id, phase_num):
+		logger = logging.getLogger('pg_server.Verifier')
+		logger.debug(f"Checking turn for player {player_id} in phase {phase_num}")
+		logger.debug(f"Current game phase: {self.game.phase}, Current player: {self.game.current_player}")
+		
 		if self.game.phase != phase_num:
+			logger.info(f"Phase mismatch - Expected: {phase_num}, Actual: {self.game.phase}")
 			return False, "Wrong phase! Currently in phase {}".format(self.game.phase)
+			
 		# auctions are a special case; it might be someone's turn who is not the lead bidder
 		if self.game.phase == Phase.AUCTION and self.game.auction.auction_in_progress:
+			logger.debug(f"Auction in progress. Current bidder index: {self.game.auction.current_bidder}")
 			if self.game.auction.can_bid[self.game.auction.current_bidder] != player_id:
 				name = self.game.get_player_name(self.game.auction.can_bid[self.game.auction.current_bidder])
+				logger.info(f"Wrong bidder - Expected: {name}, Actual: player_id {player_id}")
 				return False, "It is not your turn! {}'s turn to bid".format(name)
 			else:
+				logger.debug("Valid auction turn")
 				return True, ""
+				
 		if self.game.player_order.index(player_id) != self.game.current_player:
 			name = self.game.get_player_name(self.game.player_order[self.game.current_player])
+			logger.info(f"Wrong player - Expected: {name}, Actual: player_id {player_id}")
 			return False, "It is not your turn. {}'s turn to go".format(name)
+			
+		logger.debug("Valid turn")
 		return True, ""
 
 	def player_has_3_plants(self, player_id):
